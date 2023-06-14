@@ -4,3 +4,5 @@ export * from './team/invite_team_command'
 export * from './team/leave_team_command'
 
 export * from "./tournament/create_tournament_command";
+
+export * from './user/user_command'
