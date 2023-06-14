@@ -6,6 +6,7 @@
   "license": "ISC",
   "main": "index.js",
   "scripts": {
+    "push-start": "npx prisma db push && node src/index.js",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
   },
   "dependencies": {

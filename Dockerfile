@@ -6,4 +6,4 @@ COPY . .
 RUN npm i && \
   npx tsc
 
-ENTRYPOINT ["node", "/opt/src/index.js"]
+ENTRYPOINT ["npm", "run", "push-start"]

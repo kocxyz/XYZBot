@@ -6,5 +6,6 @@ export const environment = load({
   DISCORD_GUILD_ID: String,
   DISCORD_ORGANIZER_CHANNEL_ID: String,
   DISCORD_SIGNUP_CHANNEL_ID: String,
-  DISCORD_ORGANIZER_ROLE_ID: String
+  DISCORD_ORGANIZER_ROLE_ID: String,
+  DATABASE_URL: String
 });

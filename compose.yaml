@@ -1,0 +1,29 @@
+name: koc-tournament
+
+services:
+  bot:
+    image: koc-tournament:latest
+    build: .
+
+    environment:
+      DISCORD_BOT_TOKEN: 
+      DISCORD_BOT_CLIENT_ID:
+      DISCORD_GUILD_ID:
+      DISCORD_ORGANIZER_ROLE_ID:
+
+      DISCORD_ORGANIZER_CHANNEL_ID:
+      DISCORD_SIGNUP_CHANNEL_ID:
+
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/koc-tournament?schema=public
+
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15.3-alpine
+    restart: always
+
+    environment:
+      POSTGRES_DB: koc-tournament
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
