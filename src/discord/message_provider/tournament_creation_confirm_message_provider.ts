@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { MessageProvider } from "../message_provider";
-import { createTournamentCreationSummaryEmbed } from "../embeds/tournament_creation_embed";
+import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { KOCServer } from "knockoutcity-auth-client";
 import { createTournament, setTournamentOrganizerMessageId, setTournamentSignupsMessageId } from "../../services/tournament";
 import { TournamentOrganizerMessageProvider } from "./tournament_organizer_message_provider";
@@ -75,7 +75,7 @@ async function collector(
       });
 
       const organizerChannel = await interaction.channel?.client.channels.fetch(
-        environment.DISCORD_ORGANIZER_CHANNEL_ID
+        environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
       )
 
       if (!organizerChannel?.isTextBased()) {
@@ -108,7 +108,7 @@ async function collector(
       );
 
       const signupsChannel = await interaction.channel?.client.channels.fetch(
-        environment.DISCORD_SIGNUP_CHANNEL_ID
+        environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
       )
 
       if (!signupsChannel?.isTextBased()) {

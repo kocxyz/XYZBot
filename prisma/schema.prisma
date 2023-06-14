@@ -127,3 +127,11 @@ model MatchScore {
   matchId String? @db.Uuid
   match   Match?  @relation(fields: [matchId], references: [id])
 }
+
+model CSMember {
+  discordId  String  @id @unique
+  twitchName String  @unique
+  color      String
+  // If the member is currently live
+  live       Boolean @default(false)
+}

@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { createTournamentSignupEmbed } from "../embeds/tournament_signup_embed";
+import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
 import { Brawler, Team, Tournament } from "@prisma/client";
 import { MessageProvider } from "../message_provider";
 import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament } from "../../services/tournament";

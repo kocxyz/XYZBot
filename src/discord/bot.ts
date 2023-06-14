@@ -7,6 +7,10 @@ import { handleCommand, handleModal } from './event_handler';
 import { findTournaments } from '../services/tournament';
 import { TournamentOrganizerMessageProvider } from './message_provider/tournament_organizer_message_provider';
 import { TournamentSignupMessageProvider } from './message_provider/tournament_signup_message_provider';
+import { TwitchClient as TwitchTracker } from '../twitch/tracker';
+import { handleTrackerGoOffline } from './event_handler/handle_tracker';
+import { ContentSquadStatusMessageUpdater } from './message_updater/content_squad_status_message_updater';
+import { ServerStatusMessageUpdater } from './message_updater/server_status_message_updater';
 
 export class DiscordBot {
   // Create a new client instance
@@ -18,6 +22,9 @@ export class DiscordBot {
     ]
   });
 
+  // A Tracker for twitch events
+  private twitchTracker = new TwitchTracker();
+
   // Collection of commands known to the Bot
   private commands = new Collection<string, DiscordCommand>();
 
@@ -27,13 +34,43 @@ export class DiscordBot {
   constructor() {
     this.client.once(Events.ClientReady, c => {
       console.log(`Ready! Logged in as ${c.user.tag}`);
+
+      this.registerTrackerHandlers();
+      this.twitchTracker.startTracking();
     });
 
     this.registerCommands();
     this.registerEventHandlers();
+    this.registerMessageUpdaters();
   }
 
-  private registerCommands() {
+  private registerMessageUpdaters() {
+    setInterval(
+      () => {
+        ContentSquadStatusMessageUpdater.update(
+          this.client,
+          { members: this.twitchTracker.users }
+        )
+
+        ServerStatusMessageUpdater.update(this.client)
+      },
+      1000 * 60 * 2
+    );
+  }
+
+  private registerTrackerHandlers(): void {
+    this.twitchTracker.on(
+      'live',
+      (member) => handleTrackerGoOffline(this.client, member)
+    );
+
+    this.twitchTracker.on(
+      'offline',
+      (member) => handleTrackerGoOffline(this.client, member)
+    );
+  }
+
+  private registerCommands(): void {
     this.commands.clear();
 
     Object.values(Commands).forEach((command) => {
@@ -50,7 +87,7 @@ export class DiscordBot {
     })
   }
 
-  private registerEventHandlers() {
+  private registerEventHandlers(): void {
     this.client.on(
       Events.InteractionCreate,
       async (interaction: BaseInteraction) => {

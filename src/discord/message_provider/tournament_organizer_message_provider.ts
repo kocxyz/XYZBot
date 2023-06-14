@@ -2,8 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, Interactio
 import { MessageProvider } from "../message_provider";
 import { archiveTournament, changeTournamentStatus, findTournament } from "../../services/tournament";
 import { Tournament, Brawler, TournamentStatus, Team } from "@prisma/client";
-import { createTournamentOrganizerEmbed } from "../embeds/tournament_organizer_embed";
-import { createTournamentSignupListEmbed } from "../embeds/tournament_signups_list_embed";
+import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
+import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
 import { environment } from "../../environment";
 
 const customIds = {
@@ -117,7 +117,7 @@ async function collector(
         })
 
         const organizerChannel = await interaction.client.channels.fetch(
-          environment.DISCORD_ORGANIZER_CHANNEL_ID
+          environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
         )
 
         if (
@@ -145,7 +145,7 @@ async function collector(
         }
 
         const signupsChannel = await interaction.client.channels.fetch(
-          environment.DISCORD_SIGNUP_CHANNEL_ID
+          environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
         )
 
         if (

@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import { MessageProvider } from "../message_provider";
-import { createTournamentCreationSummaryEmbed } from "../embeds/tournament_creation_embed";
+import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { DEFAULT_AUTH_URL, getServers } from "knockoutcity-auth-client";
 import { TournamentCreationConfirmMessageProvider } from "./tournament_creation_confirm_message_provider";
 

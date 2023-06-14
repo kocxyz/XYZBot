@@ -3,7 +3,6 @@ import {
 } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { createTeam, findTeamByUser } from '../../../services/team';
-import { isOrganizer } from '../../guards/role_guards';
 
 export const CreateTeamBasicCommand = {
   type: 'basic',

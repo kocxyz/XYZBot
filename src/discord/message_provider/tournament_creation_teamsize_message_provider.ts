@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, MessageCreateOptions, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import { MessageProvider } from "../message_provider";
-import { createTournamentCreationSummaryEmbed } from "../embeds/tournament_creation_embed";
+import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { TournamentCreationServerMessageProvider } from "./tournament_creation_server_message_provider";
 
 const customIds = {
