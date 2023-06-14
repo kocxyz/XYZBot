@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id   String @id @default(uuid()) @db.Uuid
+  name String
+
+  // The owner of the Team
+  // If not set its archived
+  ownerId String?  @unique @db.Uuid
+  owner   Brawler? @relation("owner", fields: [ownerId], references: [id])
+
+  // The Team members
+  members Brawler[] @relation("member")
+
+  // The Tournaments the team participated in
+  tournaments Tournament[]
+
+  wins   Int @default(0)
+  losses Int @default(0)
+
+  // Matches played as Team A
+  matchTeamA Match[] @relation("teamA")
+  // Matches played as Team B
+  matchTeamB Match[] @relation("teamB")
+}
+
+enum TournamentStatus {
+  SIGNUP_CLOSED
+  SIGNUP_OPEN
+  IN_PROGRESS
+  FINISHED
+}
+
+model Tournament {
+  id          String           @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  status      TournamentStatus @default(SIGNUP_CLOSED)
+
+  // The size per Team (1, 2, 3)
+  teamSize Int
+  // The Id of the server the Tournament is held on
+  serverId String
+
+  // The Discord Message Id to reregister
+  // the collectors when the bot should
+  // restart or crash
+  discordSingupMessageId    String?
+  discordOrganizerMessageId String?
+
+  // The finals match
+  rootMatch Match?  @relation("rootMatch")
+  // The matches of the tournament
+  matches   Match[] @relation("matches")
+
+  // The teams that participate in the tournament
+  teams Team[]
+
+  // The participants of the tournament
+  participants Brawler[]
+}
+
+model Brawler {
+  id        String @id @default(uuid()) @db.Uuid
+  discordId String @unique
+  username  String @unique
+
+  // The Tournaments the user took part in
+  tournaments Tournament[]
+
+  wins   Int @default(0)
+  losses Int @default(0)
+
+  teamId    String? @db.Uuid
+  team      Team?   @relation("member", fields: [teamId], references: [id])
+  ownedTeam Team?   @relation("owner")
+}
+
+enum MatchWinner {
+  // Still in Progress
+  None
+  // Team A won
+  TeamA
+  // Team B won
+  TeamB
+}
+
+model Match {
+  id String @id @default(uuid()) @db.Uuid
+
+  tournamentId     String     @db.Uuid
+  Tournament       Tournament @relation("matches", fields: [tournamentId], references: [id])
+  rootTournamentId String     @unique @db.Uuid
+  rootTournament   Tournament @relation("rootMatch", fields: [rootTournamentId], references: [id])
+
+  parent        Match?  @relation("children", fields: [parentMatchId], references: [id])
+  parentMatchId String? @db.Uuid
+  // The matches below in the tree
+  children      Match[] @relation("children")
+
+  teamAId String? @db.Uuid
+  teamA   Team?   @relation("teamA", fields: [teamAId], references: [id])
+
+  teamBId String? @db.Uuid
+  teamB   Team?   @relation("teamB", fields: [teamBId], references: [id])
+
+  winner MatchWinner @default(None)
+
+  // The scores of the different games played
+  // during the match
+  scores MatchScore[]
+}
+
+model MatchScore {
+  id String @id @default(uuid()) @db.Uuid
+
+  scoreTeamA Int
+  scoreTeamB Int
+
+  matchId String? @db.Uuid
+  match   Match?  @relation(fields: [matchId], references: [id])
+}
