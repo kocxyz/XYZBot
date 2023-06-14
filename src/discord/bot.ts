@@ -10,14 +10,19 @@ import { TournamentSignupMessageProvider } from './message_provider/tournament_s
 
 export class DiscordBot {
   // Create a new client instance
-  private client = new Client({ intents: [GatewayIntentBits.Guilds] });
+  private client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent
+    ]
+  });
 
   // Collection of commands known to the Bot
   private commands = new Collection<string, DiscordCommand>();
 
   // Collection of modal handlers known to the Bot
   private modalHandlers = new Collection<string, ModalHandler>();
-
 
   constructor() {
     this.client.once(Events.ClientReady, c => {
@@ -59,11 +64,11 @@ export class DiscordBot {
 
   private async restoreCollectors() {
     const organizerChannel = await this.client.channels.fetch(
-      environment.DISCORD_ORGANIZER_CHANNEL_ID
+      environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
     )
 
     const signupsChannel = await this.client.channels.fetch(
-      environment.DISCORD_SIGNUP_CHANNEL_ID
+      environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
     )
 
     const tournaments = await findTournaments();

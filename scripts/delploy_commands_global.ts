@@ -1,7 +1,7 @@
-import type { DiscordCommand } from '../src/bot/command'
+import type { DiscordCommand } from '../src/discord/command'
 import { Collection, REST, Routes } from 'discord.js'
 import { environment } from '../src/environment'
-import * as Commands from '../src/bot/commands'
+import * as Commands from '../src/discord/commands'
 
 const commands = new Collection<string, DiscordCommand>()
 Object.values(Commands).forEach((command) => {

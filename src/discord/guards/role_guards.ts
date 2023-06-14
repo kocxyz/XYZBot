@@ -7,5 +7,5 @@ export async function isOrganizer(interaction: BaseInteraction): Promise<boolean
   }
 
   const member = await interaction.guild.members.fetch(interaction.user.id)
-  return member.roles.cache.has(environment.DISCORD_ORGANIZER_ROLE_ID)
+  return member.roles.cache.has(environment.DISCORD_TOURNAMENT_ORGANIZER_ROLE_ID)
 }
