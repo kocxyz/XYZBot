@@ -27,6 +27,7 @@ export const UserBasicCommand = {
     if (!userData) {
       await interaction.reply({
         content: 'User does not exist!',
+        ephemeral: true,
       })
       return;
     }
