@@ -22,9 +22,9 @@ export const ContentSquadStatusMessageUpdater = {
 
     const message = await channel.messages.fetch(
       environment.DISCORD_TWITCH_STREAM_MESSAGE_ID
-    );
+    ).catch(() => null);
 
-    if (!message.id) {
+    if (message === null || !message?.id) {
       await channel.send({
         embeds: [
           createContentSquadStatusEmbed(

@@ -20,9 +20,9 @@ export const ServerStatusMessageUpdater = {
 
     const message = await channel.messages.fetch(
       environment.DISCORD_SERVER_STATUS_MESSAGE_ID
-    );
+    ).catch(() => null);
 
-    if (!message.id) {
+    if (message === null || !message.id) {
       await channel.send({
         embeds: [
           await createServerStatusEmbed(client.user!.avatarURL()!)
