@@ -1,6 +1,7 @@
 import { APIEmbedField, EmbedBuilder, User } from "discord.js";
 import { KOCUser } from "knockoutcity-auth-client";
 import moment from "moment";
+import { findTeamByUser } from "../../services/team";
 
 function getAdditionalInfo(
   user: User,
@@ -36,11 +37,12 @@ function getAdditionalInfo(
   };
 }
 
-export function createUserEmbed(
+export async function createUserEmbed(
   user: User,
   userData: KOCUser,
 ) {
   const additionalInfo = getAdditionalInfo(user, userData);
+  const team = await findTeamByUser(user)
 
   return new EmbedBuilder()
     .setTitle("User Stats")
@@ -54,6 +56,12 @@ export function createUserEmbed(
         value: userData.username
       },
       {
+        name: "Team",
+        value: team !== null
+          ? team.name
+          : '-'
+      },
+      {
         name: "Registered At",
         value: `<t:${moment(Date.parse(userData.registeredat)).unix()}>`
       },
@@ -61,6 +69,6 @@ export function createUserEmbed(
         name: "Last Login",
         value: `<t:${moment(Date.parse(userData.lastlogin)).unix()}>`
       },
-      ...additionalInfo.fields ?? []
+      ...additionalInfo.fields ?? [],
     ]);
 }
