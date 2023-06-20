@@ -134,4 +134,7 @@ model CSMember {
   color      String
   // If the member is currently live
   live       Boolean @default(false)
+  // The server id the member is currently
+  // playing on.
+  server     String
 }

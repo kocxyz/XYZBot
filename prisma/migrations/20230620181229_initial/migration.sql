@@ -70,6 +70,7 @@ CREATE TABLE "CSMember" (
     "twitchName" TEXT NOT NULL,
     "color" TEXT NOT NULL,
     "live" BOOLEAN NOT NULL DEFAULT false,
+    "server" TEXT NOT NULL,
 
     CONSTRAINT "CSMember_pkey" PRIMARY KEY ("discordId")
 );
