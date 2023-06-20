@@ -55,15 +55,11 @@ export function createUserEmbed(
       },
       {
         name: "Registered At",
-        value: moment(
-          Date.parse(userData.registeredat)
-        ).format("DD/MM/YYYY HH:mm:ss")
+        value: `<t:${moment(Date.parse(userData.registeredat)).unix()}>`
       },
       {
         name: "Last Login",
-        value: moment(
-          Date.parse(userData.lastlogin)
-        ).format("DD/MM/YYYY HH:mm:ss")
+        value: `<t:${moment(Date.parse(userData.lastlogin)).unix()}>`
       },
       ...additionalInfo.fields ?? []
     ]);
