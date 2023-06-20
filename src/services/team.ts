@@ -46,7 +46,18 @@ export async function findTeamByUser(user: User) {
   return prisma.team.findFirst({
     where: { id: brawler.teamId },
     include: {
-      members: true
+      owner: true,
+      members: true,
+    }
+  });
+}
+
+export async function findTeamByName(name: string) {
+  return prisma.team.findFirst({
+    where: { name: name },
+    include: {
+      owner: true,
+      members: true,
     }
   });
 }
