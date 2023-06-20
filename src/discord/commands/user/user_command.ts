@@ -10,7 +10,7 @@ export const UserBasicCommand = {
 
   data: new SlashCommandBuilder()
     .setName('user')
-    .setDescription('Creates a new Team')
+    .setDescription('Get information about a user')
     .addUserOption(option =>
       option.setName('name')
         .setDescription('The name of the user')
