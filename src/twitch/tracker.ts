@@ -24,13 +24,16 @@ export class TwitchClient extends EventEmitter {
    * Start Tracking Streams
    */
   async startTracking(): Promise<void> {
-    await this.updateCSMembers();
-
-    this.updateStreamInformation();
-
-    this.trackingInterval = setInterval(() => {
+    const handleUpdate = async () => {
+      await this.updateCSMembers();
       this.updateStreamInformation();
-    }, 1000 * 60 * 2);
+    }
+
+    await handleUpdate();
+    this.trackingInterval = setInterval(
+      handleUpdate,
+      environment.TWITCH_TRACKING_UPDATE_INTERVAL
+    );
   }
 
   /**

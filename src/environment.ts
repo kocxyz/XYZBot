@@ -20,9 +20,12 @@ export const environment = load({
   DISCORD_TWITCH_STREAM_MESSAGE_ID: String,
   DISCORD_TWITCH_STREAM_NOTIFICATION_ROLE_ID: String,
 
+  DISCORD_MESSAGE_UPDATE_INTERVAL: Number,
+
   // Twitch Credentials
   TWITCH_ID: String,
   TWITCH_SECRET: String,
+  TWITCH_TRACKING_UPDATE_INTERVAL: Number,
 
   // Postgres URL
   DATABASE_URL: String

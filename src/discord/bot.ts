@@ -37,25 +37,30 @@ export class DiscordBot {
 
       this.registerTrackerHandlers();
       this.twitchTracker.startTracking();
+
+      this.registerMessageUpdaters();
     });
 
     this.registerCommands();
     this.registerEventHandlers();
-    this.registerMessageUpdaters();
   }
 
   private registerMessageUpdaters() {
-    setInterval(
-      () => {
-        ContentSquadStatusMessageUpdater.update(
-          this.client,
-          { members: this.twitchTracker.users }
-        )
+    const handleUpdates = () => {
+      ContentSquadStatusMessageUpdater.update(
+        this.client,
+        { members: this.twitchTracker.users }
+      )
 
-        ServerStatusMessageUpdater.update(this.client)
-      },
-      1000 * 60 * 2
+      ServerStatusMessageUpdater.update(this.client)
+    }
+
+    setInterval(
+      handleUpdates,
+      environment.DISCORD_MESSAGE_UPDATE_INTERVAL
     );
+
+    handleUpdates()
   }
 
   private registerTrackerHandlers(): void {
