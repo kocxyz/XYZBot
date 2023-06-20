@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { StaticAuthProvider } from '@twurple/auth';
+import { AppTokenAuthProvider } from '@twurple/auth';
 import { environment } from "../environment";
 import { ApiClient, HelixStream } from "@twurple/api";
 import { CSMember } from "@prisma/client";
@@ -7,7 +7,7 @@ import { prisma } from "../database/client";
 
 export class TwitchClient extends EventEmitter {
   // Auth Provider for Twitch
-  private authProvider = new StaticAuthProvider(
+  private authProvider = new AppTokenAuthProvider(
     environment.TWITCH_ID,
     environment.TWITCH_SECRET
   );
