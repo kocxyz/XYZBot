@@ -3,28 +3,40 @@ import { environment } from "../../environment";
 import { createContentSquadStatusEmbed } from "../embeds/content_squad/content_squad_status_embed";
 import { MessageUpdater } from "../message_updater";
 import { HelixStream } from "@twurple/api";
+import { createLogger } from "../../logging";
+
+const logger = createLogger('Content Squad Status Message Updater')
 
 export const ContentSquadStatusMessageUpdater = {
   update: async (client, { members }) => {
     const channel = await client.channels.fetch(
       environment.DISCORD_TWITCH_STREAM_CHANNEL_ID
-    );
+    ).catch((error) => {
+      logger.error(
+        `Could not fetch Twitch Stream Channel: ${JSON.stringify(error)}`
+      );
+      return null;
+    });
 
     if (!channel) {
-      console.error(`Could not find channel for content squad status messages!`);
+      logger.error(`Could not find channel for content squad status messages!`);
       return;
     }
 
     if (!channel.isTextBased()) {
-      console.error(`Channel for content squad status messages is not a Text Channel!`);
+      logger.error(`Channel for Content Squad status messages is not a Text Channel!`);
       return;
     }
 
     const message = await channel.messages.fetch(
       environment.DISCORD_TWITCH_STREAM_MESSAGE_ID
-    ).catch(() => null);
+    ).catch((error) => {
+      logger.error(
+        `Could not fetch messages from Twitch Stream Channel: ${JSON.stringify(error)}`
+      );
+    });
 
-    if (message === null || !message?.id) {
+    if (!message?.id) {
       await channel.send({
         embeds: [
           createContentSquadStatusEmbed(
@@ -32,6 +44,10 @@ export const ContentSquadStatusMessageUpdater = {
             members
           )
         ]
+      }).catch((error) => {
+        logger.error(
+          `Could not send Twitch Stream status message: ${JSON.stringify(error)}`
+        );
       });
       return;
     }
@@ -43,6 +59,10 @@ export const ContentSquadStatusMessageUpdater = {
           members
         )
       ]
+    }).catch((error) => {
+      logger.error(
+        `Could not edit Twitch Stream status message: ${JSON.stringify(error)}`
+      );
     });
   }
 } satisfies MessageUpdater<{

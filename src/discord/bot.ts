@@ -12,6 +12,9 @@ import { handleTrackerGoOffline } from './event_handler/handle_tracker';
 import { ContentSquadStatusMessageUpdater } from './message_updater/content_squad_status_message_updater';
 import { ServerStatusMessageUpdater } from './message_updater/server_status_message_updater';
 import { PermanentCollector } from './permanent_collector';
+import { createLogger } from '../logging';
+
+const logger = createLogger('Discord Bot');
 
 export class DiscordBot {
   // Create a new client instance
@@ -34,18 +37,13 @@ export class DiscordBot {
 
   constructor() {
     this.client.once(Events.ClientReady, c => {
-      console.log(`Ready! Logged in as ${c.user.tag}`);
+      logger.info(`Ready! Logged in as ${c.user.tag}`);
 
       this.registerTrackerHandlers();
       this.twitchTracker.startTracking();
 
       this.registerMessageUpdaters();
-    });
-
-    this.client.on(Events.InteractionCreate, (interaction) => {
-      if (interaction.isMessageComponent()) {
-        PermanentCollector.emitCollect(interaction.message, interaction);
-      }
+      this.restoreCollectors();
     });
 
     this.registerCommands();
@@ -83,9 +81,12 @@ export class DiscordBot {
   }
 
   private registerCommands(): void {
+    logger.info(`Registering command handlers...`)
     this.commands.clear();
 
     Object.values(Commands).forEach((command) => {
+      logger.verbose(`Registering command handler for '${command.data.name}'`);
+
       switch (command.type) {
         case 'basic':
           this.commands.set(command.data.name, command)
@@ -100,18 +101,29 @@ export class DiscordBot {
   }
 
   private registerEventHandlers(): void {
+    logger.info(`Registering event handlers...`)
     this.client.on(
       Events.InteractionCreate,
       async (interaction: BaseInteraction) => {
-        if (interaction.isChatInputCommand())
+        if (interaction.isChatInputCommand()) {
+          logger.verbose(`Got ChatInputCommand Interaction: ${interaction.id}`)
           return await handleCommand(this.commands, interaction);
+        }
 
-        if (interaction.isModalSubmit())
+        if (interaction.isModalSubmit()) {
+          logger.verbose(`Got ModalSubmit Interaction: ${interaction.id}`)
           return await handleModal(this.modalHandlers, interaction)
+        }
+
+        if (interaction.isMessageComponent()) {
+          logger.verbose(`Got MessageComponent Interaction: ${interaction.id}`)
+          return PermanentCollector.emitCollect(interaction.message, interaction);
+        }
       });
   }
 
   private async restoreCollectors() {
+    logger.info(`Restoring collectors...`);
     const organizerChannel = await this.client.channels.fetch(
       environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
     )
@@ -137,12 +149,12 @@ export class DiscordBot {
             { tournament }
           )
 
-          console.log(
+          logger.info(
             `Setup collector for Organizer Message: '${tournament.title}'`
           )
         }
         catch (e: any) {
-          console.error(`(${tournament.title}): ${e.message}`)
+          logger.error(`(${tournament.title}): ${e.message}`)
         }
       }
 
@@ -161,12 +173,12 @@ export class DiscordBot {
             { tournament }
           )
 
-          console.log(
+          logger.info(
             `Setup collector for Signups Message: '${tournament.title}'`
           )
         }
         catch (e: any) {
-          console.error(`(${tournament.title}): ${e.message}`)
+          logger.error(`(${tournament.title}): ${e.message}`)
         }
       }
     });
@@ -175,6 +187,5 @@ export class DiscordBot {
   async connect() {
     // Log in to Discord with your client's token
     await this.client.login(environment.DISCORD_BOT_TOKEN);
-    await this.restoreCollectors();
   }
 }

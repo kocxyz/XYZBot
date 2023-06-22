@@ -4,6 +4,9 @@ import { environment } from "../environment";
 import { ApiClient, HelixStream } from "@twurple/api";
 import { CSMember } from "@prisma/client";
 import { prisma } from "../database/client";
+import { createLogger } from "../logging";
+
+const logger = createLogger('Twitch Client');
 
 export class TwitchClient extends EventEmitter {
   // Auth Provider for Twitch
@@ -24,6 +27,8 @@ export class TwitchClient extends EventEmitter {
    * Start Tracking Streams
    */
   async startTracking(): Promise<void> {
+    logger.verbose(`Start Tracking`);
+
     const handleUpdate = async () => {
       await this.updateCSMembers();
       this.updateStreamInformation();
@@ -40,12 +45,15 @@ export class TwitchClient extends EventEmitter {
    * Stop Tracking Streams
    */
   stopTracking(): void {
+    logger.verbose(`Stop Tracking`);
+
     clearInterval(this.trackingInterval);
     this.trackingInterval = undefined;
   }
 
   private async updateCSMembers() {
     this.users = await prisma.cSMember.findMany({});
+    logger.verbose(`Updated CS Members: ${JSON.stringify(this.users)}`);
   }
 
   /**
@@ -59,6 +67,12 @@ export class TwitchClient extends EventEmitter {
     this.users = await Promise.all(
       this.users.map(async (user) => {
         const streamData = await this.getStreamData(user)
+          .catch(() => {
+            logger.error(
+              `Could not fetch Stream Data for user: ${user.twitchName}`
+            );
+            return null;
+          })
 
         // Stream data could not be retrieved
         // or streamer is not live.
@@ -69,12 +83,15 @@ export class TwitchClient extends EventEmitter {
             this.emit('offline', user);
 
             // Update database entry
-            // Update database entry
             await prisma.cSMember.update({
               where: { twitchName: user.twitchName },
               data: {
                 live: false
               }
+            }).catch((error) => {
+              logger.error(
+                `Error updating CS Member: ${JSON.stringify(error)}`
+              );
             });
           }
 
@@ -95,6 +112,10 @@ export class TwitchClient extends EventEmitter {
             data: {
               live: true
             }
+          }).catch((error) => {
+            logger.error(
+              `Error updating CS Member: ${JSON.stringify(error)}`
+            );
           });
         }
 

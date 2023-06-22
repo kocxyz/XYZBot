@@ -1,5 +1,8 @@
 import { ChatInputCommandInteraction, Collection } from "discord.js";
 import { DiscordCommand } from "../command";
+import { createLogger } from "../../logging";
+
+const logger = createLogger('Command Handler');
 
 export async function handleCommand(
   commands: Collection<string, DiscordCommand>,
@@ -8,7 +11,7 @@ export async function handleCommand(
   const command = commands.get(interaction.commandName);
 
   if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
+    logger.warn(`No command matching ${interaction.commandName} was found.`);
     return;
   }
 
@@ -26,7 +29,7 @@ export async function handleCommand(
     }
   }
   catch (error) {
-    console.error(error);
+    logger.error(`An error occured: ${JSON.stringify(error)}`);
 
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({

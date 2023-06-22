@@ -1,5 +1,8 @@
-import { ButtonInteraction, ChannelSelectMenuInteraction, ComponentType, Interaction, InteractionResponse, MentionableSelectMenuInteraction, Message, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserSelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, ChannelSelectMenuInteraction, ComponentType, Interaction, InteractionResponse, MentionableSelectMenuInteraction, Message, MessageComponentInteraction, RoleSelectMenuInteraction, StringSelectMenuInteraction, UserSelectMenuInteraction } from "discord.js";
 import { EventEmitter } from "../event_emitter";
+import { createLogger } from "../logging";
+
+const logger = createLogger('Permanent Collector');
 
 type InteractionTypes = {
   [ComponentType.ActionRow]: ButtonInteraction | StringSelectMenuInteraction | UserSelectMenuInteraction | RoleSelectMenuInteraction | MentionableSelectMenuInteraction | ChannelSelectMenuInteraction,
@@ -27,15 +30,19 @@ export class PermanentCollector {
   }): CollectorEventEmitter<Type> {
     const eventEmitter = new EventEmitter();
     PermanentCollector.messageHandlers[options.message.id] = eventEmitter;
+
+    logger.verbose(`Created Event Emitter for message '${options.message.id}' with type '${ComponentType[options.componentType]}'`);
+
     return eventEmitter;
   }
 
   static emitCollect(
     message: Message | InteractionResponse,
-    interaction: Interaction
+    interaction: MessageComponentInteraction
   ): void {
     const eventEmitter = PermanentCollector.messageHandlers[message.id];
     if (!eventEmitter) {
+      logger.warn(`No Event Emitter found for message '${message.id}'`)
       return;
     }
 
