@@ -11,6 +11,7 @@ import { TwitchClient as TwitchTracker } from '../twitch/tracker';
 import { handleTrackerGoOffline } from './event_handler/handle_tracker';
 import { ContentSquadStatusMessageUpdater } from './message_updater/content_squad_status_message_updater';
 import { ServerStatusMessageUpdater } from './message_updater/server_status_message_updater';
+import { PermanentCollector } from './permanent_collector';
 
 export class DiscordBot {
   // Create a new client instance
@@ -39,6 +40,12 @@ export class DiscordBot {
       this.twitchTracker.startTracking();
 
       this.registerMessageUpdaters();
+    });
+
+    this.client.on(Events.InteractionCreate, (interaction) => {
+      if (interaction.isMessageComponent()) {
+        PermanentCollector.emitCollect(interaction.message, interaction);
+      }
     });
 
     this.registerCommands();

@@ -6,6 +6,7 @@ import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament } fro
 import { findTeamByUser } from "../../services/team";
 import { findOrCreateBrawler } from "../../services/brawler";
 import { TournamentSignupTeamMessageProvider } from "./tournament_signup_team_message_provider";
+import { PermanentCollector } from "../permanent_collector";
 
 const customIds = {
   signupButton: 'signup',
@@ -185,9 +186,9 @@ async function collector(
   message: Message | InteractionResponse,
   params: TournamentSignupMessageCollectorParameters
 ) {
-  const collector = message.createMessageComponentCollector({
+  const collector = PermanentCollector.createMessageComponentCollector({
+    message,
     componentType: ComponentType.Button,
-    time: 3_600_000
   });
 
   collector.on('collect', async (interaction) => {

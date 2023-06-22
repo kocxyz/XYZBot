@@ -5,6 +5,7 @@ import { Tournament, Brawler, TournamentStatus, Team } from "@prisma/client";
 import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
 import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
 import { environment } from "../../environment";
+import { PermanentCollector } from "../permanent_collector";
 
 const customIds = {
   openSignupsButton: 'openSignups',
@@ -70,9 +71,9 @@ async function collector(
   message: Message | InteractionResponse,
   { tournament }: TournamentOrganizerMessageCollectorParameters
 ) {
-  const collector = message.createMessageComponentCollector({
+  const collector = PermanentCollector.createMessageComponentCollector({
+    message,
     componentType: ComponentType.Button,
-    time: 3_600_000
   });
 
   collector.on('collect', async (interaction) => {

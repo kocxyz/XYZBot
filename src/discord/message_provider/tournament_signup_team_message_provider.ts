@@ -3,6 +3,7 @@ import { Brawler, Tournament, Team } from "@prisma/client";
 import { MessageProvider } from "../message_provider";
 import { signupForTeamTournament } from "../../services/tournament";
 import { TournamentSignupMessageProvider } from "./tournament_signup_message_provider";
+import { PermanentCollector } from "../permanent_collector";
 
 const customIds = {
   users: 'users',
@@ -42,9 +43,9 @@ async function collector(
     team,
   }: TournamentSignupTeamMessageCollectorParameters
 ) {
-  const collector = message.createMessageComponentCollector({
+  const collector = PermanentCollector.createMessageComponentCollector({
+    message,
     componentType: ComponentType.StringSelect,
-    time: 3_600_000
   });
 
   collector.on('collect', async (interaction) => {
