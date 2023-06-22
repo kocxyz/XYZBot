@@ -43,9 +43,9 @@ async function collector(
     team,
   }: TournamentSignupTeamMessageCollectorParameters
 ) {
-  const collector = PermanentCollector.createMessageComponentCollector({
-    message,
+  const collector = message.createMessageComponentCollector({
     componentType: ComponentType.StringSelect,
+    time: 3_600_000
   });
 
   collector.on('collect', async (interaction) => {
