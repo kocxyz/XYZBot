@@ -42,7 +42,6 @@ export class PermanentCollector {
   ): void {
     const eventEmitter = PermanentCollector.messageHandlers[message.id];
     if (!eventEmitter) {
-      logger.warn(`No Event Emitter found for message '${message.id}'`)
       return;
     }
 
