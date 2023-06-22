@@ -2,7 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, Compon
 import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
 import { Brawler, Team, Tournament } from "@prisma/client";
 import { MessageProvider, reply } from "../message_provider";
-import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament } from "../../services/tournament";
+import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament, findTournament } from "../../services/tournament";
 import { findTeamByUser } from "../../services/team";
 import { findOrCreateBrawler } from "../../services/brawler";
 import { TournamentSignupTeamMessageProvider } from "./tournament_signup_team_message_provider";
@@ -16,12 +16,10 @@ const customIds = {
 async function handleSoloInteraction(
   interaction: ButtonInteraction,
   { tournament }: TournamentSignupMessageCollectorParameters
-): Promise<Tournament & { participants: Brawler[]; teams: Team[]; }> {
-  let updatedTournament = undefined;
-
+): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
     try {
-      updatedTournament = await signupForSoloTournament(
+      await signupForSoloTournament(
         tournament.id,
         interaction.user
       )
@@ -34,7 +32,7 @@ async function handleSoloInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     await reply(
@@ -47,7 +45,7 @@ async function handleSoloInteraction(
   }
   else if (interaction.customId === customIds.leaveButton) {
     try {
-      updatedTournament = await leaveSoloTournament(
+      await leaveSoloTournament(
         tournament.id,
         interaction.user
       );
@@ -60,7 +58,7 @@ async function handleSoloInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     await reply(
@@ -71,22 +69,13 @@ async function handleSoloInteraction(
       }
     )
   }
-
-  if (!updatedTournament) {
-    console.error(`Could not update Tournament!`);
-    return tournament;
-  }
-
-  return updatedTournament;
 }
 
 async function handleTeamInteraction(
   tournamentMessage: Message | InteractionResponse,
   interaction: ButtonInteraction,
   { tournament }: TournamentSignupMessageCollectorParameters
-): Promise<Tournament & { participants: Brawler[]; teams: Team[]; }> {
-  let updatedTournament;
-
+): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
     const team = await findTeamByUser(interaction.user);
     if (!team) {
@@ -97,7 +86,7 @@ async function handleTeamInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     const brawler = await findOrCreateBrawler(interaction.user);
@@ -109,7 +98,7 @@ async function handleTeamInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     if (team.members.length < tournament.teamSize) {
@@ -120,7 +109,7 @@ async function handleTeamInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     const message = await reply(
@@ -135,7 +124,7 @@ async function handleTeamInteraction(
     )
 
     if (!message) {
-      return tournament;
+      return;
     }
 
     await TournamentSignupTeamMessageProvider.collector(
@@ -146,12 +135,12 @@ async function handleTeamInteraction(
         tournamentMessage: tournamentMessage
       }
     )
-    return tournament;
+    return;
   }
 
   if (interaction.customId === customIds.leaveButton) {
     try {
-      updatedTournament = await leaveTeamTournament(
+      await leaveTeamTournament(
         tournament.id,
         interaction.user
       );
@@ -164,7 +153,7 @@ async function handleTeamInteraction(
           ephemeral: true
         }
       )
-      return tournament;
+      return;
     }
 
     await reply(
@@ -175,11 +164,6 @@ async function handleTeamInteraction(
       }
     )
   }
-
-  if (!updatedTournament) {
-    return tournament;
-  }
-  return updatedTournament;
 }
 
 async function createMessage(
@@ -224,22 +208,24 @@ async function collector(
   });
 
   collector.on('collect', async (interaction) => {
-    let updatedTournament;
     if (params.tournament.teamSize === 1) {
-      updatedTournament = await handleSoloInteraction(
+      await handleSoloInteraction(
         interaction,
         params
       )
     }
     else {
-      updatedTournament = await handleTeamInteraction(
+      await handleTeamInteraction(
         message,
         interaction,
         params
       )
     }
 
-    await message.edit(await createMessage({ tournament: updatedTournament }))
+    const updatedTournament = await findTournament(params.tournament.id);
+    if (updatedTournament) {
+      await message.edit(await createMessage({ tournament: updatedTournament }))
+    }
   });
 }
 
