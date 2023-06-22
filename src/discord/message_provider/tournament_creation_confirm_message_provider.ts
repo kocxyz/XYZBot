@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { KOCServer } from "knockoutcity-auth-client";
 import { createTournament, setTournamentOrganizerMessageId, setTournamentSignupsMessageId } from "../../services/tournament";
@@ -69,10 +69,13 @@ async function collector(
         }
       );
 
-      await interaction.reply({
-        content: '**Created Tournament**',
-        ephemeral: true
-      });
+      await reply(
+        interaction,
+        {
+          content: '**Created Tournament**',
+          ephemeral: true
+        }
+      );
 
       const organizerChannel = await interaction.channel?.client.channels.fetch(
         environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
@@ -143,10 +146,13 @@ async function collector(
       return;
     }
 
-    await interaction.reply({
-      content: 'Successfully discarded Tournament.',
-      ephemeral: true
-    });
+    await reply(
+      interaction,
+      {
+        content: 'Successfully discarded Tournament.',
+        ephemeral: true
+      }
+    );
   })
 }
 

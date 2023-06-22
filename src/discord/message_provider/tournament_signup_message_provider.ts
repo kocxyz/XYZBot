@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
 import { Brawler, Team, Tournament } from "@prisma/client";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament } from "../../services/tournament";
 import { findTeamByUser } from "../../services/team";
 import { findOrCreateBrawler } from "../../services/brawler";
@@ -27,17 +27,23 @@ async function handleSoloInteraction(
       )
     }
     catch (e: any) {
-      await interaction.reply({
-        content: `${e.message}`,
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: `${e.message}`,
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
-    await interaction.reply({
-      content: `Successully signed up for: ${tournament.title}`,
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: `Successully signed up for: ${tournament.title}`,
+        ephemeral: true
+      }
+    )
   }
   else if (interaction.customId === customIds.leaveButton) {
     try {
@@ -47,17 +53,23 @@ async function handleSoloInteraction(
       );
     }
     catch (e: any) {
-      await interaction.reply({
-        content: `${e.message}`,
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: `${e.message}`,
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
-    await interaction.reply({
-      content: `Successully removed Tournament Entry for: ${tournament.title}`,
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: `Successully removed Tournament Entry for: ${tournament.title}`,
+        ephemeral: true
+      }
+    )
   }
 
   if (!updatedTournament) {
@@ -78,31 +90,41 @@ async function handleTeamInteraction(
   if (interaction.customId === customIds.signupButton) {
     const team = await findTeamByUser(interaction.user);
     if (!team) {
-      await interaction.reply({
-        content: 'You are currently not in a Team',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'You are currently not in a Team',
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
     const brawler = await findOrCreateBrawler(interaction.user);
     if (team.ownerId !== brawler.id) {
-      await interaction.reply({
-        content: 'Only the Team Owner can sign the Team up from the Tournament.',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'Only the Team Owner can sign the Team up from the Tournament.',
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
     if (team.members.length < tournament.teamSize) {
-      await interaction.reply({
-        content: 'Your Team has not enough members. Please invite some to join the Tournament.',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'Your Team has not enough members. Please invite some to join the Tournament.',
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
-    const message = await interaction.reply(
+    const message = await reply(
+      interaction,
       {
         ...await TournamentSignupTeamMessageProvider.createMessage({
           team: team,
@@ -111,6 +133,10 @@ async function handleTeamInteraction(
         ephemeral: true
       }
     )
+
+    if (!message) {
+      return tournament;
+    }
 
     await TournamentSignupTeamMessageProvider.collector(
       message,
@@ -131,17 +157,23 @@ async function handleTeamInteraction(
       );
     }
     catch (e: any) {
-      await interaction.reply({
-        content: `${e.message}`,
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: `${e.message}`,
+          ephemeral: true
+        }
+      )
       return tournament;
     }
 
-    await interaction.reply({
-      content: `Successully removed Team Tournament Entry for: ${tournament.title}`,
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: `Successully removed Team Tournament Entry for: ${tournament.title}`,
+        ephemeral: true
+      }
+    )
   }
 
   if (!updatedTournament) {

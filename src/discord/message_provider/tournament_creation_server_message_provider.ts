@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { DEFAULT_AUTH_URL, getServers } from "knockoutcity-auth-client";
 import { TournamentCreationConfirmMessageProvider } from "./tournament_creation_confirm_message_provider";
@@ -48,7 +48,8 @@ async function collector(
   collector.once('collect', async (interaction) => {
     const server = servers.data[parseInt(interaction.values[0])];
 
-    const message = await interaction.reply(
+    const message = await reply(
+      interaction,
       {
         ...await TournamentCreationConfirmMessageProvider.createMessage({
           name, description, teamSize, server
@@ -56,6 +57,10 @@ async function collector(
         ephemeral: true
       }
     )
+
+    if (!message) {
+      return;
+    }
 
     await TournamentCreationConfirmMessageProvider.collector(message, {
       name, description, teamSize, server

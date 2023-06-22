@@ -1,9 +1,8 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import { Brawler, Tournament, Team } from "@prisma/client";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { signupForTeamTournament } from "../../services/tournament";
 import { TournamentSignupMessageProvider } from "./tournament_signup_message_provider";
-import { PermanentCollector } from "../permanent_collector";
 
 const customIds = {
   users: 'users',
@@ -67,17 +66,23 @@ async function collector(
       )
     }
     catch (e: any) {
-      await interaction.reply({
-        content: `${e.message}`,
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: `${e.message}`,
+          ephemeral: true
+        }
+      );
       return;
     }
 
-    await interaction.reply({
-      content: `Successully signed up Team (${team.name}) for: ${tournament.title}`,
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: `Successully signed up Team (${team.name}) for: ${tournament.title}`,
+        ephemeral: true
+      }
+    )
   });
 }
 

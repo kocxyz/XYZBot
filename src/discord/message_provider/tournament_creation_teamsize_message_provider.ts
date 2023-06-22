@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, MessageCreateOptions, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { TournamentCreationServerMessageProvider } from "./tournament_creation_server_message_provider";
 
@@ -53,7 +53,8 @@ async function collector(
   collector.once('collect', async (interaction) => {
     const teamSize = parseInt(interaction.values[0])
 
-    const message = await interaction.reply(
+    const message = await reply(
+      interaction,
       {
         ...await TournamentCreationServerMessageProvider.createMessage({
           name, description, teamSize
@@ -61,6 +62,10 @@ async function collector(
         ephemeral: true
       }
     )
+
+    if (!message) {
+      return;
+    }
 
     await TournamentCreationServerMessageProvider.collector(message, {
       name, description, teamSize

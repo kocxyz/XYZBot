@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { archiveTournament, changeTournamentStatus, findTournament } from "../../services/tournament";
 import { Tournament, Brawler, TournamentStatus, Team } from "@prisma/client";
 import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
@@ -112,10 +112,13 @@ async function collector(
           tournament.id,
         )
 
-        await interaction.reply({
-          content: `Successfully archive Tournament: ${tournament.title}}`,
-          ephemeral: true
-        })
+        await reply(
+          interaction,
+          {
+            content: `Successfully archive Tournament: ${tournament.title}}`,
+            ephemeral: true
+          }
+        )
 
         const organizerChannel = await interaction.client.channels.fetch(
           environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
@@ -131,17 +134,23 @@ async function collector(
               tournament.discordOrganizerMessageId
             )
             await message.delete();
-            await interaction.followUp({
-              content: `Successfully deleted Organization Message`,
-              ephemeral: true
-            })
+            await reply(
+              interaction,
+              {
+                content: `Successfully deleted Organization Message`,
+                ephemeral: true
+              }
+            )
           }
           catch (e: any) {
             console.error(`(${tournament.title}): ${e.message}`)
-            await interaction.followUp({
-              content: `An error occured while deleting the Organization message.`,
-              ephemeral: true
-            })
+            await reply(
+              interaction,
+              {
+                content: `An error occured while deleting the Organization message.`,
+                ephemeral: true
+              }
+            )
           }
         }
 
@@ -159,17 +168,23 @@ async function collector(
               tournament.discordSingupMessageId
             )
             await message.delete()
-            await interaction.followUp({
-              content: `Successfully deleted Signups Message`,
-              ephemeral: true
-            })
+            await reply(
+              interaction,
+              {
+                content: `Successfully deleted Signups Message`,
+                ephemeral: true
+              }
+            )
           }
           catch (e: any) {
             console.error(`(${tournament.title}): ${e.message}`)
-            await interaction.followUp({
-              content: `An error occured while deleting the Signups message.`,
-              ephemeral: true
-            })
+            await reply(
+              interaction,
+              {
+                content: `An error occured while deleting the Signups message.`,
+                ephemeral: true
+              }
+            )
           }
         }
 
@@ -180,16 +195,22 @@ async function collector(
         // is not updated when signups change.
         const freshTournament = await findTournament(tournament.id);
         if (!freshTournament) {
-          await interaction.reply({
-            content: `Tournament doesn't exist anymore.`
-          })
+          await reply(
+            interaction,
+            {
+              content: `Tournament doesn't exist anymore.`
+            }
+          )
           return;
         }
 
-        await interaction.reply({
-          embeds: [createTournamentSignupListEmbed(freshTournament)],
-          ephemeral: true
-        })
+        await reply(
+          interaction,
+          {
+            embeds: [createTournamentSignupListEmbed(freshTournament)],
+            ephemeral: true
+          }
+        )
         return;
     }
 
@@ -198,17 +219,23 @@ async function collector(
         await createMessage({ tournament: updatedTournament })
       )
 
-      await interaction.reply({
-        content: 'Successfully updated Tournament',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'Successfully updated Tournament',
+          ephemeral: true
+        }
+      )
       return;
     }
 
-    await interaction.reply({
-      content: 'An Error occured :|',
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: 'An Error occured :|',
+        ephemeral: true
+      }
+    )
   })
 }
 

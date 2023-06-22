@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider } from "../message_provider";
+import { MessageProvider, reply } from "../message_provider";
 import { Team } from "@prisma/client";
 import { findTeamByUser, joinTeam } from "../../services/team";
 import { createLogger } from "../../logging";
@@ -44,25 +44,23 @@ async function collector(
 
   collector.on('collect', async (interaction) => {
     if (interaction.customId === customIds.declineButton) {
-      await interaction.reply({
-        content: `Successfully declined invite.`
-      }).catch((error) => {
-        logger.error(
-          `An error occured when sending a reply: ${JSON.stringify(error)}`
-        );
-      });
+      await reply(
+        interaction,
+        {
+          content: `Successfully declined invite.`
+        }
+      )
       return;
     }
 
     const userTeam = await findTeamByUser(interaction.user)
     if (userTeam) {
-      await interaction.reply({
-        content: `You are currently in a Team. Invite could not be accepted.`
-      }).catch((error) => {
-        logger.error(
-          `An error occured when sending a reply: ${JSON.stringify(error)}`
-        );
-      });
+      await reply(
+        interaction,
+        {
+          content: `You are currently in a Team. Invite could not be accepted.`
+        }
+      )
       return;
     }
 
@@ -74,23 +72,21 @@ async function collector(
       });
 
     if (!joinedTeam) {
-      await interaction.reply({
-        content: `An Error occured joining Team: ${team.name}`
-      }).catch((error) => {
-        logger.error(
-          `An error occured when sending a reply: ${JSON.stringify(error)}`
-        );
-      });
+      await reply(
+        interaction,
+        {
+          content: `An Error occured joining Team: ${team.name}`
+        }
+      )
       return;
     }
 
-    await interaction.reply({
-      content: `Successfully joined Team: ${joinedTeam.name}`
-    }).catch((error) => {
-      logger.error(
-        `An error occured when sending a reply: ${JSON.stringify(error)}`
-      );
-    });
+    await reply(
+      interaction,
+      {
+        content: `Successfully joined Team: ${joinedTeam.name}`
+      }
+    )
   })
 }
 
