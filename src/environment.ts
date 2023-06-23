@@ -20,6 +20,9 @@ export const environment = load({
   DISCORD_TWITCH_STREAM_MESSAGE_ID: String,
   DISCORD_TWITCH_STREAM_NOTIFICATION_ROLE_ID: String,
 
+  DISCORD_CONTENT_SQUAD_ROLE_ID: String,
+  DISCORD_DEVELOPER_ROLE_ID: String,
+
   DISCORD_MESSAGE_UPDATE_INTERVAL: Number,
 
   // Twitch Credentials

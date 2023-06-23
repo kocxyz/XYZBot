@@ -33,7 +33,7 @@ export const UserBasicCommand = {
     }
 
     await interaction.reply({
-      embeds: [await createUserEmbed(user, userData.data)]
+      embeds: [await createUserEmbed(interaction, user, userData.data)]
     });
   }
 } satisfies BasicDiscordCommand

@@ -1,20 +1,31 @@
-import { APIEmbedField, EmbedBuilder, User } from "discord.js";
+import { APIEmbedField, BaseInteraction, Client, EmbedBuilder, User } from "discord.js";
 import { KOCUser } from "knockoutcity-auth-client";
-import moment from "moment";
 import { findTeamByUser } from "../../services/team";
+import moment from "moment";
+import { createLogger } from "../../logging";
+import { environment } from "../../environment";
 
-function getAdditionalInfo(
+const logger = createLogger('User Embed');
+
+async function getAdditionalInfo(
+  interaction: BaseInteraction,
   user: User,
   userData: KOCUser,
-): {
-  color: number,
-  description?: string,
-  fields?: APIEmbedField[]
-} {
+): Promise<{
+  color: number;
+  description?: string | undefined;
+  fields?: APIEmbedField[] | undefined;
+}> {
+  const member = await interaction.guild?.members.fetch(user.id)
+    .catch((error) => {
+      logger.error(`Could not fetch member: ${JSON.stringify(error)}`);
+      return null;
+    });
+
   if (userData.ownedServers && userData.ownedServers.length > 0) {
     return {
       color: 0x0000FF,
-      description: 'This user owns servers',
+      description: 'This is a Server Owner',
       fields: [{
         name: "Owned Servers",
         value: userData.ownedServers.map(server => `**${server.name}** - \`${server.players}/${server.maxPlayers}\``).join("\n\n")
@@ -22,13 +33,21 @@ function getAdditionalInfo(
     };
   }
 
-  if (
-    user.id === '579609384808873984' ||
-    user.id === '127455308359532544'
-  ) {
+  if (member?.roles.cache.has(
+    environment.DISCORD_CONTENT_SQUAD_ROLE_ID
+  )) {
+    return {
+      color: 0xE8A0BF,
+      description: 'This user is a Content Squad Member',
+    };
+  }
+
+  if (member?.roles.cache.has(
+    environment.DISCORD_DEVELOPER_ROLE_ID
+  )) {
     return {
       color: 0xFFD700,
-      description: 'This user is a developer',
+      description: 'This user is a Developer',
     };
   }
 
@@ -38,10 +57,11 @@ function getAdditionalInfo(
 }
 
 export async function createUserEmbed(
+  interaction: BaseInteraction,
   user: User,
   userData: KOCUser,
 ) {
-  const additionalInfo = getAdditionalInfo(user, userData);
+  const additionalInfo = await getAdditionalInfo(interaction, user, userData);
   const team = await findTeamByUser(user)
 
   return new EmbedBuilder()
