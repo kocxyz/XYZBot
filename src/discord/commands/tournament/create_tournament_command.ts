@@ -4,6 +4,7 @@ import {
 import { BasicDiscordCommand } from '../../command';
 import { TournamentCreationTeamSizeMessageProvider } from '../../message_provider/tournament_creation_teamsize_message_provider';
 import { isOrganizer } from '../../guards/role_guards';
+import { reply } from '../../message_provider';
 
 
 export const CreateTournamentBasicCommand = {
@@ -27,17 +28,21 @@ export const CreateTournamentBasicCommand = {
 
   execute: async (interaction) => {
     if (!await isOrganizer(interaction)) {
-      await interaction.reply({
-        content: 'You are not allowed to use this command.',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'You are not allowed to use this command.',
+          ephemeral: true
+        }
+      )
       return;
     }
 
     const name = interaction.options.getString('name', true);
     const description = interaction.options.getString('description', true);
 
-    const message = await interaction.reply(
+    const message = await reply(
+      interaction,
       {
         ...await TournamentCreationTeamSizeMessageProvider.createMessage({
           name, description
@@ -45,6 +50,10 @@ export const CreateTournamentBasicCommand = {
         ephemeral: true
       }
     )
+
+    if (!message) {
+      return;
+    }
 
     await TournamentCreationTeamSizeMessageProvider.collector(message, {
       name, description

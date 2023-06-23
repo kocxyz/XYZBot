@@ -3,6 +3,10 @@ import {
 } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { createTeam, findTeamByUser } from '../../../services/team';
+import { createLogger } from '../../../logging';
+import { reply, replyError } from '../../message_provider';
+
+const logger = createLogger('Create Team Command')
 
 export const CreateTeamBasicCommand = {
   type: 'basic',
@@ -21,21 +25,37 @@ export const CreateTeamBasicCommand = {
     // If a team already exists for that user
     // then he has to leave first
     if (team) {
-      await interaction.reply({
-        content: 'You are already in a team!',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'You are already in a team!',
+          ephemeral: true
+        }
+      )
       return;
     }
 
     const createdTeam = await createTeam(
       interaction.user,
       interaction.options.getString('name', true)
-    );
+    ).catch((error) => {
+      logger.error(
+        `An error occured during Team creation: ${JSON.stringify(error)}`
+      )
+      return null;
+    });
 
-    await interaction.reply({
-      content: `Created Team **'${createdTeam.name}'**`,
-      ephemeral: true
-    })
+    if (createdTeam === null) {
+      await replyError(interaction);
+      return;
+    }
+
+    await reply(
+      interaction,
+      {
+        content: `Created Team **'${createdTeam.name}'**`,
+        ephemeral: true
+      }
+    )
   }
 } satisfies BasicDiscordCommand

@@ -5,6 +5,7 @@ import { BasicDiscordCommand } from '../../command';
 import { findTeamByUser } from '../../../services/team';
 import { findOrCreateBrawler } from '../../../services/brawler';
 import { TeamInviteMessageProvider } from '../../message_provider/team_invite_message_provider';
+import { reply } from '../../message_provider';
 
 export const InviteTeamBasicCommand = {
   type: 'basic',
@@ -25,19 +26,25 @@ export const InviteTeamBasicCommand = {
     const team = await findTeamByUser(interaction.user);
     // If the user is currently not in a team
     if (!team) {
-      await interaction.reply({
-        content: 'You are not in a team!',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'You are not in a team!',
+          ephemeral: true
+        }
+      )
       return;
     }
 
     const brawler = await findOrCreateBrawler(interaction.user);
     if (team.ownerId !== brawler.id) {
-      await interaction.reply({
-        content: 'Only the owner can invite users to the team!',
-        ephemeral: true
-      })
+      await reply(
+        interaction,
+        {
+          content: 'Only the owner can invite users to the team!',
+          ephemeral: true
+        }
+      )
       return;
     }
 
@@ -46,10 +53,13 @@ export const InviteTeamBasicCommand = {
     );
     await TeamInviteMessageProvider.collector(message, { team })
 
-    await interaction.reply({
-      content: `Invite send to ${user.username}`,
-      ephemeral: true
-    })
+    await reply(
+      interaction,
+      {
+        content: `Invite send to ${user.username}`,
+        ephemeral: true
+      }
+    )
   }
 } satisfies BasicDiscordCommand
 

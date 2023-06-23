@@ -29,3 +29,15 @@ export function reply(
     return null;
   });
 }
+
+export function replyError(
+  interaction: BaseInteraction
+): Promise<Message | InteractionResponse<boolean> | null> {
+  return reply(
+    interaction,
+    {
+      content: 'An error occured. We are sorry 😔',
+      ephemeral: true
+    }
+  )
+}

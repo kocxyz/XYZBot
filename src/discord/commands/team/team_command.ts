@@ -4,6 +4,7 @@ import {
 import { BasicDiscordCommand } from '../../command';
 import { findTeamByName, findTeamByUser } from '../../../services/team';
 import { createTeamEmbed } from '../../embeds/team_embed';
+import { reply } from '../../message_provider';
 
 export const TeamBasicCommand = {
   type: 'basic',
@@ -26,17 +27,23 @@ export const TeamBasicCommand = {
       : await findTeamByName(teamName)
 
     if (!team) {
-      await interaction.reply({
-        content: teamName === null
-          ? 'You are not in a team!'
-          : 'Team does not exist!',
-        ephemeral: true,
-      })
+      await reply(
+        interaction,
+        {
+          content: teamName === null
+            ? 'You are not in a team!'
+            : 'Team does not exist!',
+          ephemeral: true,
+        }
+      )
       return;
     }
 
-    await interaction.reply({
-      embeds: [createTeamEmbed(team)]
-    });
+    await reply(
+      interaction,
+      {
+        embeds: [createTeamEmbed(team)]
+      }
+    );
   }
 } satisfies BasicDiscordCommand

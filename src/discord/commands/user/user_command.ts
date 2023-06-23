@@ -4,6 +4,7 @@ import {
 import { BasicDiscordCommand } from '../../command';
 import { DEFAULT_AUTH_URL, getUser } from 'knockoutcity-auth-client';
 import { createUserEmbed } from '../../embeds/user_embed';
+import { reply } from '../../message_provider';
 
 export const UserBasicCommand = {
   type: 'basic',
@@ -25,15 +26,21 @@ export const UserBasicCommand = {
       .catch(() => null);
 
     if (!userData) {
-      await interaction.reply({
-        content: 'User does not exist!',
-        ephemeral: true,
-      })
+      await reply(
+        interaction,
+        {
+          content: 'User does not exist!',
+          ephemeral: true,
+        }
+      )
       return;
     }
 
-    await interaction.reply({
-      embeds: [await createUserEmbed(interaction, user, userData.data)]
-    });
+    await reply(
+      interaction,
+      {
+        embeds: [await createUserEmbed(interaction, user, userData.data)]
+      }
+    );
   }
 } satisfies BasicDiscordCommand

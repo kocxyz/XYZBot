@@ -1,4 +1,4 @@
-import { APIEmbedField, BaseInteraction, Client, EmbedBuilder, User } from "discord.js";
+import { APIEmbedField, BaseInteraction, EmbedBuilder, User } from "discord.js";
 import { KOCUser } from "knockoutcity-auth-client";
 import { findTeamByUser } from "../../services/team";
 import moment from "moment";
