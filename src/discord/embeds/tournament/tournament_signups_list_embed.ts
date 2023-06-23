@@ -38,7 +38,7 @@ function createTeamEntryFields(
     );
 
     return [
-      { name: '\u200B', value: '\u200B' },
+      { name: '\n', value: '\n' },
       { name: 'Team', value: team.name, inline: true },
       ...members.map((b, index) => ({
         name: `Player ${index + 1}`,

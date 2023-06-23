@@ -59,8 +59,8 @@ async function createMessage(
             : tournament.status === TournamentStatus.IN_PROGRESS
               ? [listSignupsButton, finishButton]
               : tournament.status === TournamentStatus.SIGNUP_OPEN
-                ? [closeSignupsButton, startButton]
-                : [openSignupsButton]
+                ? [listSignupsButton, closeSignupsButton, startButton]
+                : [listSignupsButton, openSignupsButton]
         )
       ,
     ]
