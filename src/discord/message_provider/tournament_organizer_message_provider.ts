@@ -115,7 +115,7 @@ async function collector(
         await reply(
           interaction,
           {
-            content: `Successfully archive Tournament: ${tournament.title}}`,
+            content: `Successfully archive Tournament: ${tournament.title}`,
             ephemeral: true
           }
         )
