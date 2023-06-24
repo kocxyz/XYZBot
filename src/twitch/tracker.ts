@@ -27,7 +27,7 @@ export class TwitchClient extends EventEmitter {
    * Start Tracking Streams
    */
   async startTracking(): Promise<void> {
-    logger.verbose(`Start Tracking`);
+    logger.info(`Start Tracking`);
 
     const handleUpdate = async () => {
       await this.updateCSMembers();
@@ -45,7 +45,7 @@ export class TwitchClient extends EventEmitter {
    * Stop Tracking Streams
    */
   stopTracking(): void {
-    logger.verbose(`Stop Tracking`);
+    logger.info(`Stop Tracking`);
 
     clearInterval(this.trackingInterval);
     this.trackingInterval = undefined;
