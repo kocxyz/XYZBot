@@ -1,9 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
 import { Brawler, Team, Tournament } from "@prisma/client";
-import { MessageProvider, reply } from "../message_provider";
-import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament, findTournament } from "../../services/tournament";
-import { findTeamByUser } from "../../services/team";
+import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
+import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament, findTournamentById } from "../../services/tournament";
+import { assertIsTeamOwner, findTeamByUser } from "../../services/team";
 import { findOrCreateBrawler } from "../../services/brawler";
 import { TournamentSignupTeamMessageProvider } from "./tournament_signup_team_message_provider";
 import { PermanentCollector } from "../permanent_collector";
@@ -18,20 +18,13 @@ async function handleSoloInteraction(
   { tournament }: TournamentSignupMessageCollectorParameters
 ): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
-    try {
-      await signupForSoloTournament(
-        tournament.id,
-        interaction.user
-      )
-    }
-    catch (e: any) {
-      await reply(
-        interaction,
-        {
-          content: `${e.message}`,
-          ephemeral: true
-        }
-      )
+    const signupResult = await signupForSoloTournament(
+      tournament.id,
+      interaction.user
+    )
+
+    if (signupResult.type === 'error') {
+      await replyErrorFromResult(interaction, signupResult);
       return;
     }
 
@@ -44,20 +37,13 @@ async function handleSoloInteraction(
     )
   }
   else if (interaction.customId === customIds.leaveButton) {
-    try {
-      await leaveSoloTournament(
-        tournament.id,
-        interaction.user
-      );
-    }
-    catch (e: any) {
-      await reply(
-        interaction,
-        {
-          content: `${e.message}`,
-          ephemeral: true
-        }
-      )
+    const leaveResult = await leaveSoloTournament(
+      tournament.id,
+      interaction.user
+    );
+
+    if (leaveResult.type === 'error') {
+      await replyErrorFromResult(interaction, leaveResult);
       return;
     }
 
@@ -77,30 +63,14 @@ async function handleTeamInteraction(
   { tournament }: TournamentSignupMessageCollectorParameters
 ): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
-    const team = await findTeamByUser(interaction.user);
-    if (!team) {
-      await reply(
-        interaction,
-        {
-          content: 'You are currently not in a Team',
-          ephemeral: true
-        }
-      )
+    const ownerResult = await assertIsTeamOwner(interaction.user);
+
+    if (ownerResult.type === 'error') {
+      await replyErrorFromResult(interaction, ownerResult);
       return;
     }
 
-    const brawler = await findOrCreateBrawler(interaction.user);
-    if (team.ownerId !== brawler.id) {
-      await reply(
-        interaction,
-        {
-          content: 'Only the Team Owner can sign the Team up from the Tournament.',
-          ephemeral: true
-        }
-      )
-      return;
-    }
-
+    const [team] = ownerResult.data;
     if (team.members.length < tournament.teamSize) {
       await reply(
         interaction,
@@ -139,20 +109,13 @@ async function handleTeamInteraction(
   }
 
   if (interaction.customId === customIds.leaveButton) {
-    try {
-      await leaveTeamTournament(
-        tournament.id,
-        interaction.user
-      );
-    }
-    catch (e: any) {
-      await reply(
-        interaction,
-        {
-          content: `${e.message}`,
-          ephemeral: true
-        }
-      )
+    const leaveResult = await leaveTeamTournament(
+      tournament.id,
+      interaction.user
+    );
+
+    if (leaveResult.type === 'error') {
+      await replyErrorFromResult(interaction, leaveResult);
       return;
     }
 
@@ -222,10 +185,13 @@ async function collector(
       )
     }
 
-    const updatedTournament = await findTournament(params.tournament.id);
-    if (updatedTournament) {
-      await message.edit(await createMessage({ tournament: updatedTournament }))
+    const tournamentResult = await findTournamentById(params.tournament.id);
+    if (tournamentResult.type === 'error') {
+      await replyErrorFromResult(interaction, tournamentResult);
+      return;
     }
+
+    await message.edit(await createMessage({ tournament: tournamentResult.data }))
   });
 }
 

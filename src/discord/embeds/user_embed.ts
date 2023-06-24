@@ -4,6 +4,7 @@ import { findTeamByUser } from "../../services/team";
 import moment from "moment";
 import { createLogger } from "../../logging";
 import { environment } from "../../environment";
+import { unwrapResult } from "../../result";
 
 const logger = createLogger('User Embed');
 
@@ -60,9 +61,9 @@ export async function createUserEmbed(
   interaction: BaseInteraction,
   user: User,
   userData: KOCUser,
-) {
+): Promise<EmbedBuilder> {
   const additionalInfo = await getAdditionalInfo(interaction, user, userData);
-  const team = await findTeamByUser(user)
+  const team = unwrapResult(await findTeamByUser(user), null)
 
   return new EmbedBuilder()
     .setTitle("User Stats")

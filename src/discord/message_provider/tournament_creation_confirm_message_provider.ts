@@ -1,11 +1,14 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider, reply } from "../message_provider";
+import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
 import { createTournamentCreationSummaryEmbed } from "../embeds/tournament/tournament_creation_embed";
 import { KOCServer } from "knockoutcity-auth-client";
 import { createTournament, setTournamentOrganizerMessageId, setTournamentSignupsMessageId } from "../../services/tournament";
 import { TournamentOrganizerMessageProvider } from "./tournament_organizer_message_provider";
 import { TournamentSignupMessageProvider } from "./tournament_signup_message_provider";
 import { environment } from "../../environment";
+import { createLogger } from "../../logging";
+
+const logger = createLogger('Tournament Creation')
 
 const customIds = {
   confirmButton: 'confirm',
@@ -60,7 +63,7 @@ async function collector(
 
   collector.once('collect', async (interaction) => {
     if (interaction.customId === customIds.confirmButton) {
-      const tournament = await createTournament(
+      const tournamentResult = await createTournament(
         name,
         description,
         {
@@ -68,22 +71,31 @@ async function collector(
           server,
         }
       );
+      if (tournamentResult.type === 'error') {
+        await replyErrorFromResult(interaction, tournamentResult);
+        return;
+      }
 
+      const tournament = tournamentResult.data;
       await reply(
         interaction,
         {
-          content: '**Created Tournament**',
+          content: `Successfully created Tournament '${tournament.title}'.`,
           ephemeral: true
         }
       );
 
       const organizerChannel = await interaction.channel?.client.channels.fetch(
         environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
-      )
+      ).catch((error) => {
+        logger.error(
+          `An error occured when fetching Tournament Organizer Channel: ${JSON.stringify(error)}`
+        );
+      }) ?? null
 
       if (!organizerChannel?.isTextBased()) {
         console.error(
-          `Could not find organizer channel or its not text based.`
+          `Tournament Organizer Channel is not Text Based.`
         )
         return;
       }
@@ -112,11 +124,15 @@ async function collector(
 
       const signupsChannel = await interaction.channel?.client.channels.fetch(
         environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
-      )
+      ).catch((error) => {
+        logger.error(
+          `An error occured when fetching Tournament Signups Channel: ${JSON.stringify(error)}`
+        );
+      }) ?? null
 
       if (!signupsChannel?.isTextBased()) {
         console.error(
-          `Could not find signups channel or its not text based.`
+          `Tournament Signups Channel is not Text Based.`
         )
         return;
       }

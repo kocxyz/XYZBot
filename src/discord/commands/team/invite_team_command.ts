@@ -2,10 +2,9 @@ import {
   SlashCommandBuilder
 } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
-import { findTeamByUser } from '../../../services/team';
-import { findOrCreateBrawler } from '../../../services/brawler';
+import { assertIsTeamOwner } from '../../../services/team';
 import { TeamInviteMessageProvider } from '../../message_provider/team_invite_message_provider';
-import { reply } from '../../message_provider';
+import { reply, replyErrorFromResult } from '../../message_provider';
 
 export const InviteTeamBasicCommand = {
   type: 'basic',
@@ -23,31 +22,14 @@ export const InviteTeamBasicCommand = {
   execute: async (interaction) => {
     const user = interaction.options.getUser('user', true)
 
-    const team = await findTeamByUser(interaction.user);
-    // If the user is currently not in a team
-    if (!team) {
-      await reply(
-        interaction,
-        {
-          content: 'You are not in a team!',
-          ephemeral: true
-        }
-      )
+    const ownerResult = await assertIsTeamOwner(interaction.user);
+
+    if (ownerResult.type === 'error') {
+      await replyErrorFromResult(interaction, ownerResult);
       return;
     }
 
-    const brawler = await findOrCreateBrawler(interaction.user);
-    if (team.ownerId !== brawler.id) {
-      await reply(
-        interaction,
-        {
-          content: 'Only the owner can invite users to the team!',
-          ephemeral: true
-        }
-      )
-      return;
-    }
-
+    const [team] = ownerResult.data;
     const message = await user.send(
       await TeamInviteMessageProvider.createMessage({ team })
     );

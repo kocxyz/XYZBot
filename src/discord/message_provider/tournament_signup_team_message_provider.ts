@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ComponentType, InteractionResponse, Message, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } from "discord.js";
 import { Brawler, Tournament, Team } from "@prisma/client";
-import { MessageProvider, reply } from "../message_provider";
+import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
 import { signupForTeamTournament } from "../../services/tournament";
 import { TournamentSignupMessageProvider } from "./tournament_signup_message_provider";
 
@@ -52,29 +52,22 @@ async function collector(
       interaction.values.map(uid => interaction.client.users.fetch(uid))
     )
 
-    try {
-      const updatedTournament = await signupForTeamTournament(
-        tournament.id,
-        interaction.user,
-        users
-      )
+    const signupResult = await signupForTeamTournament(
+      tournament.id,
+      interaction.user,
+      users
+    );
 
-      await tournamentMessage.edit(
-        await TournamentSignupMessageProvider.createMessage({
-          tournament: updatedTournament
-        })
-      )
-    }
-    catch (e: any) {
-      await reply(
-        interaction,
-        {
-          content: `${e.message}`,
-          ephemeral: true
-        }
-      );
+    if (signupResult.type === 'error') {
+      await replyErrorFromResult(interaction, signupResult);
       return;
     }
+
+    await tournamentMessage.edit(
+      await TournamentSignupMessageProvider.createMessage({
+        tournament: signupResult.data
+      }).catch()
+    ).catch()
 
     await reply(
       interaction,

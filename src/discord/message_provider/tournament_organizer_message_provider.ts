@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider, reply } from "../message_provider";
-import { archiveTournament, changeTournamentStatus, findTournament } from "../../services/tournament";
+import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
+import { archiveTournament, changeTournamentStatus, findTournamentById } from "../../services/tournament";
 import { Tournament, Brawler, TournamentStatus, Team } from "@prisma/client";
 import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
 import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
@@ -77,40 +77,40 @@ async function collector(
   });
 
   collector.on('collect', async (interaction) => {
-    let updatedTournament: Tournament & {
-      participants: Brawler[],
-      teams: Team[]
-    } | undefined = undefined;
-
     switch (interaction.customId) {
       case customIds.openSignupsButton:
-        updatedTournament = await changeTournamentStatus(
+        await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_OPEN
         )
         break;
       case customIds.closeSignupsButton:
-        updatedTournament = await changeTournamentStatus(
+        await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_CLOSED
         )
         break;
       case customIds.startButton:
-        updatedTournament = await changeTournamentStatus(
+        await changeTournamentStatus(
           tournament.id,
           TournamentStatus.IN_PROGRESS
         )
         break;
       case customIds.finishButton:
-        updatedTournament = await changeTournamentStatus(
+        await changeTournamentStatus(
           tournament.id,
           TournamentStatus.FINISHED
         )
         break;
       case customIds.archiveButton:
-        await archiveTournament(
+        const archiveResult = await archiveTournament(
           tournament.id,
         )
+
+        if (archiveResult.type === 'error') {
+          await replyErrorFromResult(interaction, archiveResult);
+          return;
+        }
 
         await reply(
           interaction,
@@ -193,46 +193,41 @@ async function collector(
         // Pull fresh data because the on in the
         // tournament object can be old since it
         // is not updated when signups change.
-        const freshTournament = await findTournament(tournament.id);
-        if (!freshTournament) {
-          await reply(
-            interaction,
-            {
-              content: `Tournament doesn't exist anymore.`
-            }
-          )
+        const tournamentResult = await findTournamentById(tournament.id);
+
+        if (tournamentResult.type === 'error') {
+          await replyErrorFromResult(interaction, tournamentResult);
           return;
         }
 
         await reply(
           interaction,
           {
-            embeds: [createTournamentSignupListEmbed(freshTournament)],
+            embeds: [createTournamentSignupListEmbed(tournamentResult.data)],
             ephemeral: true
           }
         )
         return;
     }
 
-    if (updatedTournament) {
-      await message.edit(
-        await createMessage({ tournament: updatedTournament })
-      )
+    // Pull fresh data because the on in the
+    // tournament object can be old since it
+    // is not updated when signups change.
+    const tournamentResult = await findTournamentById(tournament.id);
 
-      await reply(
-        interaction,
-        {
-          content: 'Successfully updated Tournament',
-          ephemeral: true
-        }
-      )
+    if (tournamentResult.type === 'error') {
+      await replyErrorFromResult(interaction, tournamentResult);
       return;
     }
+
+    await message.edit(
+      await createMessage({ tournament: tournamentResult.data })
+    ).catch()
 
     await reply(
       interaction,
       {
-        content: 'An Error occured :|',
+        content: 'Successfully updated Tournament',
         ephemeral: true
       }
     )

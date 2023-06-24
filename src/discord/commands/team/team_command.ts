@@ -4,7 +4,7 @@ import {
 import { BasicDiscordCommand } from '../../command';
 import { findTeamByName, findTeamByUser } from '../../../services/team';
 import { createTeamEmbed } from '../../embeds/team_embed';
-import { reply } from '../../message_provider';
+import { reply, replyErrorFromResult } from '../../message_provider';
 
 export const TeamBasicCommand = {
   type: 'basic',
@@ -20,29 +20,21 @@ export const TeamBasicCommand = {
 
   execute: async (interaction) => {
     const teamName = interaction.options.getString('name', false)
-    const team = teamName === null
+    const teamResult = teamName === null
       // Own team info
       ? await findTeamByUser(interaction.user)
       // Other team info
       : await findTeamByName(teamName)
 
-    if (!team) {
-      await reply(
-        interaction,
-        {
-          content: teamName === null
-            ? 'You are not in a team!'
-            : 'Team does not exist!',
-          ephemeral: true,
-        }
-      )
+    if (teamResult.type === 'error') {
+      await replyErrorFromResult(interaction, teamResult);
       return;
     }
 
     await reply(
       interaction,
       {
-        embeds: [createTeamEmbed(team)]
+        embeds: [createTeamEmbed(teamResult.data)]
       }
     );
   }

@@ -132,8 +132,14 @@ export class DiscordBot {
       environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
     )
 
-    const tournaments = await findTournaments();
-    tournaments.forEach(async (tournament) => {
+    const tournamentsResult = await findTournaments();
+    if (tournamentsResult.type === 'error') {
+      logger.error(`Could not find Tournaments: ${tournamentsResult.message}`);
+      return;
+    }
+
+
+    tournamentsResult.data.forEach(async (tournament) => {
       if (
         organizerChannel &&
         organizerChannel.isTextBased() &&

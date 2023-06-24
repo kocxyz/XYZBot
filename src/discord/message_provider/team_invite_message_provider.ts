@@ -1,10 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider, reply } from "../message_provider";
+import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
 import { Team } from "@prisma/client";
-import { findTeamByUser, joinTeam } from "../../services/team";
-import { createLogger } from "../../logging";
-
-const logger = createLogger('Team Invite Message Provider');
+import { joinTeam } from "../../services/team";
 
 const customIds = {
   acceptButton: 'accept',
@@ -53,38 +50,16 @@ async function collector(
       return;
     }
 
-    const userTeam = await findTeamByUser(interaction.user)
-    if (userTeam) {
-      await reply(
-        interaction,
-        {
-          content: `You are currently in a Team. Invite could not be accepted.`
-        }
-      )
-      return;
-    }
-
-    const joinedTeam = await joinTeam(team.id, interaction.user)
-      .catch((error) => {
-        logger.error(
-          `An error when joining a Team: ${JSON.stringify(error)}`
-        );
-      });
-
-    if (!joinedTeam) {
-      await reply(
-        interaction,
-        {
-          content: `An Error occured joining Team: ${team.name}`
-        }
-      )
+    const joinTeamResult = await joinTeam(team.id, interaction.user)
+    if (joinTeamResult.type === 'error') {
+      await replyErrorFromResult(interaction, joinTeamResult);
       return;
     }
 
     await reply(
       interaction,
       {
-        content: `Successfully joined Team: ${joinedTeam.name}`
+        content: `Successfully joined Team: ${joinTeamResult.data.name}`
       }
     )
   })
