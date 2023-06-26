@@ -1,10 +1,9 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
-import { Brawler, Team, Tournament } from "@prisma/client";
+import { Participant, Tournament } from "@prisma/client";
 import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
 import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament, findTournamentById } from "../../services/tournament";
-import { assertIsTeamOwner, findTeamByUser } from "../../services/team";
-import { findOrCreateBrawler } from "../../services/brawler";
+import { assertIsTeamOwner } from "../../services/team";
 import { TournamentSignupTeamMessageProvider } from "./tournament_signup_team_message_provider";
 import { PermanentCollector } from "../permanent_collector";
 
@@ -197,15 +196,13 @@ async function collector(
 
 type TournamentSignupMessageCreateParameters = {
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
+    participants: Participant[]
   }
 }
 
 type TournamentSignupMessageCollectorParameters = {
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
+    participants: Participant[]
   }
 }
 

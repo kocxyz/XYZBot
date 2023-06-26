@@ -1,17 +1,18 @@
-import { Tournament, Brawler, Team } from "@prisma/client";
+import { Tournament, Brawler, Team, Participant } from "@prisma/client";
 import { EmbedBuilder } from "discord.js";
 import { getServers, DEFAULT_AUTH_URL } from "knockoutcity-auth-client";
 
 export async function createTournamentSignupEmbed(
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
+    participants: Participant[],
   }
 ) {
   const servers = await getServers(DEFAULT_AUTH_URL)
   const server = servers.data.filter(
     (s) => `${s.id}` === `${tournament.serverId}`
   )[0];
+
+  const participants = tournament.participants.length
 
   return new EmbedBuilder()
     .setTitle(tournament.title)
@@ -23,8 +24,8 @@ export async function createTournamentSignupEmbed(
           ? 'Participants'
           : 'Teams',
         value: tournament.teamSize === 1
-          ? `${tournament.participants.length}`
-          : `${tournament.teams.length}  (${tournament.participants.length})`
+          ? `${participants}`
+          : `${participants}  (${tournament.teamSize * participants})`
       },
       { name: 'Server Name', value: server.name, inline: true },
       { name: 'Server Region', value: server.region, inline: true },

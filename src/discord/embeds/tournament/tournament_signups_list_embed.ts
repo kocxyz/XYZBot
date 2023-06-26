@@ -1,50 +1,42 @@
-import { Tournament, Brawler, Team } from "@prisma/client";
-import { APIEmbedField, EmbedBuilder } from "discord.js";
+import { Tournament, Brawler, Team, Participant } from '@prisma/client';
+import { APIEmbedField, EmbedBuilder } from 'discord.js';
 
 export function createTournamentSignupListEmbed(
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
-  }
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
+  },
 ) {
   return new EmbedBuilder()
     .setTitle(`Participants: ${tournament.title}`)
     .setDescription(tournament.description)
     .addFields(
       tournament.teamSize === 1
-        ? tournament.participants.map(createSoloEntryField)
-        : createTeamEntryFields(tournament)
-    )
+        ? tournament.participants.map((p) => createSoloEntryField(p.brawlers[0]))
+        : createTeamEntryFields(tournament),
+    );
 }
 
-function createSoloEntryField(
-  brawler: Brawler
-) {
+function createSoloEntryField(brawler: Brawler) {
   return {
     name: 'Name',
-    value: `${brawler.username}`
+    value: `${brawler.username}`,
   };
 }
 
 function createTeamEntryFields(
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
-  }
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
+  },
 ): APIEmbedField[] {
-  return tournament.teams.flatMap((team): APIEmbedField[] => {
-    const members = tournament.participants.filter(
-      (b) => b.teamId === team.id
-    );
-
+  return tournament.participants.flatMap((participant): APIEmbedField[] => {
     return [
       { name: '\n', value: '\n' },
-      { name: 'Team', value: team.name, inline: true },
-      ...members.map((b, index) => ({
+      { name: 'Team', value: participant.team?.name ?? '-', inline: true },
+      ...participant.brawlers.map((b, index) => ({
         name: `Player ${index + 1}`,
         value: b.username,
-        inline: true
-      }))
-    ]
-  })
+        inline: true,
+      })),
+    ];
+  });
 }

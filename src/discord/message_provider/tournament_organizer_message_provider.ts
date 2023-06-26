@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
 import { archiveTournament, changeTournamentStatus, findTournamentById } from "../../services/tournament";
-import { Tournament, Brawler, TournamentStatus, Team } from "@prisma/client";
+import { Tournament, TournamentStatus, Participant, Brawler, Team } from "@prisma/client";
 import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
 import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
 import { environment } from "../../environment";
@@ -236,15 +236,13 @@ async function collector(
 
 type TournamentOrganizerMessageCreateParameters = {
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[],
   }
 }
 
 type TournamentOrganizerMessageCollectorParameters = {
   tournament: Tournament & {
-    participants: Brawler[],
-    teams: Team[]
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[],
   }
 }
 

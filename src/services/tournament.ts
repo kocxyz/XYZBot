@@ -1,72 +1,81 @@
-import type { KOCServer } from 'knockoutcity-auth-client'
+import type { KOCServer } from 'knockoutcity-auth-client';
 import { User } from 'discord.js';
 import { findOrCreateBrawler } from './brawler';
-import { Brawler, Team, Tournament, TournamentStatus } from '@prisma/client';
+import { Brawler, Participant, Team, Tournament, TournamentStatus } from '@prisma/client';
 import { assertIsTeamOwner } from './team';
 import * as TournamentDao from '../database/dao/tournament';
+import * as ParticipantDao from '../database/dao/participant';
 import { Failure, Result, SuccessResult } from '../result';
 
 export function createTournament(
   name: string,
   description: string,
   options: {
-    teamSize: number,
-    server: KOCServer
-  }
-): Promise<Result<(Tournament & { participants: Brawler[], teams: Team[] })>> {
+    teamSize: number;
+    server: KOCServer;
+  },
+): Promise<Result<Tournament & { participants: (Participant & { team: Team | null; brawlers: Brawler[] })[] }>> {
   return TournamentDao.createTournament({
     data: {
       title: name,
       description: description,
       serverId: `${options.server.id}`,
-      teamSize: options.teamSize
+      teamSize: options.teamSize,
     },
     include: {
-      participants: true,
-      teams: true
-    }
-  })
-}
-
-export function findTournamentById(
-  id: string
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'record-not-found'>> {
-  return TournamentDao.findFirstTournament({
-    where: { id },
-    include: {
-      participants: true,
-      teams: true
-    }
-  })
-}
-
-export function findTournamentsWithStatus(
-  status: TournamentStatus
-): Promise<Result<(Tournament & { participants: Brawler[] })[]>> {
-  return TournamentDao.findManyTournament({
-    where: {
-      status
+      participants: {
+        include: {
+          brawlers: true,
+          team: true
+        },
+      },
     },
-    include: {
-      participants: true,
-    }
-  })
-}
-
-export function findTournaments(): Promise<
-  Result<(Tournament & { participants: Brawler[], teams: Team[] })[]>
-> {
-  return TournamentDao.findManyTournament({
-    include: {
-      participants: true,
-      teams: true
-    }
   });
 }
 
-export async function findTournamentsUserIsSignedUpFor(
-  user: User
-): Promise<Result<Tournament[]>> {
+export function findTournamentById(
+  id: string,
+): Promise<Result<Tournament & { participants: (Participant & { team: Team | null; brawlers: Brawler[] })[] }, 'record-not-found'>> {
+  return TournamentDao.findFirstTournament({
+    where: { id },
+    include: {
+      participants: {
+        include: {
+          brawlers: true,
+          team: true
+        },
+      },
+    },
+  });
+}
+
+export function findTournamentsWithStatus(
+  status: TournamentStatus,
+): Promise<Result<(Tournament & { participants: Participant[] })[]>> {
+  return TournamentDao.findManyTournament({
+    where: {
+      status,
+    },
+    include: {
+      participants: true,
+    },
+  });
+}
+
+export function findTournaments(): Promise<Result<(Tournament & { participants: (Participant & { team: Team | null; brawlers: Brawler[] })[] })[]>> {
+  return TournamentDao.findManyTournament({
+    include: {
+      participants: {
+        include: {
+          brawlers: true,
+          team: true
+        },
+      },
+    },
+  });
+}
+
+export async function findTournamentsUserIsSignedUpFor(user: User): Promise<Result<Tournament[]>> {
   const brawlerResult = await findOrCreateBrawler(user);
   if (brawlerResult.type === 'error') {
     return brawlerResult;
@@ -75,100 +84,103 @@ export async function findTournamentsUserIsSignedUpFor(
   return TournamentDao.findManyTournament({
     where: {
       NOT: {
-        status: TournamentStatus.FINISHED
+        status: TournamentStatus.FINISHED,
       },
       participants: {
-        some: { id: brawlerResult.data.id }
-      }
-    }
-  })
+        some: {
+          brawlers: {
+            some: {
+              id: brawlerResult.data.id,
+            },
+          },
+        },
+      },
+    },
+  });
 }
 
-export async function findTournamentsTeamIsSignedUpFor(
-  team: Team
-): Promise<Result<Tournament[]>> {
+export async function findTournamentsTeamIsSignedUpFor(team: Team): Promise<Result<Tournament[]>> {
   return TournamentDao.findManyTournament({
     where: {
       NOT: {
-        status: TournamentStatus.FINISHED
+        status: TournamentStatus.FINISHED,
       },
-      teams: {
-        some: { id: team.id }
-      }
-    }
-  })
+      participants: {
+        some: {
+          teamId: team.id,
+        },
+      },
+    },
+  });
 }
 
 export function changeTournamentStatus(
   id: string,
-  status: TournamentStatus
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'record-not-found'>> {
+  status: TournamentStatus,
+): Promise<Result<Tournament & { participants: Participant[] }, 'record-not-found'>> {
   return TournamentDao.updateTournament({
     where: {
-      id: id
+      id: id,
     },
     data: {
-      status: status
+      status: status,
     },
     include: {
       participants: true,
-      teams: true
-    }
-  })
+    },
+  });
 }
 
 export async function setTournamentOrganizerMessageId(
   id: string,
-  messageId: string
-): Promise<Result<Tournament & { participants: Brawler[] }, 'record-not-found'>> {
+  messageId: string,
+): Promise<Result<Tournament & { participants: Participant[] }, 'record-not-found'>> {
   return TournamentDao.updateTournament({
     where: { id },
     data: {
-      discordOrganizerMessageId: messageId
+      discordOrganizerMessageId: messageId,
     },
     include: {
       participants: true,
-    }
-  })
+    },
+  });
 }
 
 export async function setTournamentSignupsMessageId(
   id: string,
-  messageId: string
-): Promise<Result<Tournament & { participants: Brawler[] }, 'record-not-found'>> {
+  messageId: string,
+): Promise<Result<Tournament & { participants: Participant[] }, 'record-not-found'>> {
   return TournamentDao.updateTournament({
     where: { id },
     data: {
-      discordSingupMessageId: messageId
+      discordSingupMessageId: messageId,
     },
     include: {
       participants: true,
-    }
-  })
+    },
+  });
 }
 
-export async function archiveTournament(
-  id: string
-): Promise<Result<Tournament, 'record-not-found'>> {
+export async function archiveTournament(id: string): Promise<Result<Tournament, 'record-not-found'>> {
   return TournamentDao.updateTournament({
     where: {
-      id: id
+      id: id,
     },
     data: {
       status: TournamentStatus.FINISHED,
       discordOrganizerMessageId: null,
-      discordSingupMessageId: null
-    }
-  })
+      discordSingupMessageId: null,
+    },
+  });
 }
 
 export async function leaveSoloTournament(
   tournamentId: string,
-  user: User
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'signups-closed' | 'not-signed-up' | 'record-not-found'>> {
+  user: User,
+): Promise<Result<Participant, 'signups-closed' | 'not-signed-up' | 'record-not-found'>> {
   const [brawlerResult, tournamentResult] = await Promise.all([
     findOrCreateBrawler(user),
-    findTournamentById(tournamentId)
+    findTournamentById(tournamentId),
   ]);
 
   if (brawlerResult.type === 'error') {
@@ -183,43 +195,31 @@ export async function leaveSoloTournament(
   const tournament = tournamentResult.data;
 
   if (tournament.status !== TournamentStatus.SIGNUP_OPEN) {
-    return Failure(
-      'signups-closed',
-      'Signups for the Tournament already closed. Not possible to withdraw.'
-    )
+    return Failure('signups-closed', 'Signups for the Tournament already closed. Not possible to withdraw.');
   }
 
-  if (tournament.participants.filter((b) => b.id === brawler.id).length === 0) {
-    return Failure(
-      'not-signed-up',
-      'You are currently not signed up for the Tournament.'
-    );
+  const participantsWithBrawler = tournament.participants.filter((p) => p.brawlers.some((b) => b.id === brawler.id));
+  if (participantsWithBrawler.length === 0) {
+    return Failure('not-signed-up', 'You are currently not signed up for the Tournament.');
   }
 
-  return TournamentDao.updateTournament({
+  return ParticipantDao.deleteParticipant({
     where: {
-      id: tournamentId
+      id: participantsWithBrawler[0].id,
     },
-    data: {
-      participants: {
-        disconnect: [{ id: brawler.id }]
-      }
-    },
-    include: {
-      participants: true,
-      teams: true,
-    }
-  })
+  });
 }
 
 export async function signupForSoloTournament(
   tournamentId: string,
   user: User,
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'signups-closed' | 'already-signed-up' | 'record-not-found'>> {
+): Promise<
+  Result<Tournament & { participants: Participant[] }, 'signups-closed' | 'already-signed-up' | 'record-not-found'>
+> {
   const [brawlerResult, tournamentResult] = await Promise.all([
     findOrCreateBrawler(user),
-    findTournamentById(tournamentId)
-  ])
+    findTournamentById(tournamentId),
+  ]);
 
   if (brawlerResult.type === 'error') {
     return brawlerResult;
@@ -233,43 +233,49 @@ export async function signupForSoloTournament(
   const tournament = tournamentResult.data;
 
   if (tournament.status !== TournamentStatus.SIGNUP_OPEN) {
-    return Failure(
-      'signups-closed',
-      'Signups for the Tournament are currently closed.'
-    )
+    return Failure('signups-closed', 'Signups for the Tournament are currently closed.');
   }
 
-  if (tournament.participants.filter((b) => b.id === brawler.id).length === 1) {
-    return Failure(
-      'already-signed-up',
-      'You are already signed up for the Tournament.'
-    );
+  const participantsWithBrawler = tournament.participants.filter((p) => p.brawlers.some((b) => b.id === brawler.id));
+  if (participantsWithBrawler.length === 1) {
+    return Failure('already-signed-up', 'You are already signed up for the Tournament.');
   }
 
   return TournamentDao.updateTournament({
     where: {
-      id: tournamentId
+      id: tournamentId,
     },
     data: {
       participants: {
-        connect: [{ id: brawler.id }]
-      }
+        create: {
+          name: brawler.username,
+          brawlers: {
+            connect: {
+              id: brawler.id,
+            },
+          },
+        },
+      },
     },
     include: {
       participants: true,
-      teams: true,
-    }
+    },
   });
 }
 
 export async function leaveTeamTournament(
   tournamentId: string,
-  user: User
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'signups-closed' | 'not-signed-up' | 'not-in-a-team' | 'not-team-owner' | 'record-not-found'>> {
+  user: User,
+): Promise<
+  Result<
+    Participant,
+    'signups-closed' | 'not-signed-up' | 'not-in-a-team' | 'not-team-owner' | 'record-not-found'
+  >
+> {
   const [ownerResult, tournamentResult] = await Promise.all([
     assertIsTeamOwner(user),
-    findTournamentById(tournamentId)
-  ])
+    findTournamentById(tournamentId),
+  ]);
 
   if (ownerResult.type === 'error') {
     return ownerResult;
@@ -281,40 +287,20 @@ export async function leaveTeamTournament(
 
   const tournament = tournamentResult.data;
   const [team] = ownerResult.data;
-  if (tournament.teams.filter((t) => t.id === team.id).length === 0) {
-    return Failure(
-      'not-signed-up',
-      'Your Team is currently not signed up for the Tournament.'
-    );
+
+  const participantsWithTeam = tournament.participants.filter((p) => p.teamId === team.id);
+  if (participantsWithTeam.length === 0) {
+    return Failure('not-signed-up', 'Your Team is currently not signed up for the Tournament.');
   }
 
   if (tournament.status !== TournamentStatus.SIGNUP_OPEN) {
-    return Failure(
-      'signups-closed',
-      'Signups for the Tournament already closed. Not possible to withdraw.'
-    )
+    return Failure('signups-closed', 'Signups for the Tournament already closed. Not possible to withdraw.');
   }
 
-  const participantsToWithdraw = tournament.participants.filter(
-    (b) => b.teamId === team.id
-  );
-
-  return TournamentDao.updateTournament({
+  return ParticipantDao.deleteParticipant({
     where: {
-      id: tournamentId
+      id: participantsWithTeam[0].id,
     },
-    data: {
-      teams: {
-        disconnect: [{ id: team.id }]
-      },
-      participants: {
-        disconnect: participantsToWithdraw.map(p => ({ id: p.id }))
-      }
-    },
-    include: {
-      participants: true,
-      teams: true,
-    }
   });
 }
 
@@ -322,12 +308,22 @@ export async function signupForTeamTournament(
   tournamentId: string,
   user: User,
   participants: User[],
-): Promise<Result<Tournament & { participants: Brawler[], teams: Team[] }, 'signups-closed' | 'already-signed-up' | 'not-in-a-team' | 'not-team-owner' | 'not-enough-members' | 'record-not-found'>> {
+): Promise<
+  Result<
+    Tournament & { participants: Participant[] },
+    | 'signups-closed'
+    | 'already-signed-up'
+    | 'not-in-a-team'
+    | 'not-team-owner'
+    | 'not-enough-members'
+    | 'record-not-found'
+  >
+> {
   const [ownerResult, tournamentResult, ...participantBrawlersResults] = await Promise.all([
     assertIsTeamOwner(user),
     findTournamentById(tournamentId),
-    ...participants.map(findOrCreateBrawler)
-  ])
+    ...participants.map(findOrCreateBrawler),
+  ]);
 
   if (ownerResult.type === 'error') {
     return ownerResult;
@@ -341,51 +337,51 @@ export async function signupForTeamTournament(
   const [team] = ownerResult.data;
 
   if (tournament.status !== TournamentStatus.SIGNUP_OPEN) {
-    return Failure(
-      'signups-closed',
-      'Signups for the Tournament already currently closed.'
-    )
+    return Failure('signups-closed', 'Signups for the Tournament already currently closed.');
   }
 
   if (team.members.length < tournament.teamSize) {
     return Failure(
       'not-enough-members',
-      'Your Team has not enough members. Please invite some to join the Tournament.'
-    )
+      'Your Team has not enough members. Please invite some to join the Tournament.',
+    );
   }
 
-  if (tournament.teams.filter((t) => t.id === team.id).length === 1) {
-    return Failure(
-      'already-signed-up',
-      'Your Team is already signed up for the Tournament.'
-    );
+  const participantsWithTeam = tournament.participants.filter((p) => p.teamId === team.id);
+  if (participantsWithTeam.length === 1) {
+    return Failure('already-signed-up', 'Your Team is already signed up for the Tournament.');
   }
 
   const participantBrawlers: SuccessResult<Brawler>[] = participantBrawlersResults.filter(
-    (result) => result.type === 'success'
+    (result) => result.type === 'success',
   ) as SuccessResult<Brawler>[];
   if (participantBrawlers.length !== participantBrawlersResults.length) {
-    return Failure(
-      'internal',
-      'Could not fetch all Brawler Participants'
-    );
+    return Failure('internal', 'Could not fetch all Brawler Participants');
   }
 
   return TournamentDao.updateTournament({
     where: {
-      id: tournamentId
+      id: tournamentId,
     },
     data: {
-      teams: {
-        connect: [{ id: team.id }]
-      },
       participants: {
-        connect: participantBrawlers.map(b => ({ id: b.data.id }))
-      }
+        create: {
+          name: team.name,
+          team: {
+            connect: {
+              id: team.id
+            }
+          },
+          brawlers: {
+            connect: participantBrawlers.map((b) => ({
+              id: b.data.id
+            }))
+          }
+        }
+      },
     },
     include: {
       participants: true,
-      teams: true,
-    }
-  })
+    },
+  });
 }

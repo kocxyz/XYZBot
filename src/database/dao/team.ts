@@ -1,4 +1,4 @@
-import { Prisma, Team } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { Failure, InternalErrorFailure, Result, Success } from "../../result";
 import { prisma } from "../client";
 
