@@ -65,9 +65,9 @@ export async function handleTrackerGoOffline(
 
   for (const message of messages.values()) {
     if (
-      message.author.id == client.user!.id &&
+      message.author.id == client.user?.id &&
       message.embeds.length > 0 &&
-      message.embeds[0].author!.name == member.twitchName
+      message.embeds[0].author?.name == member.twitchName
     ) {
       await message.delete()
         .catch((error) => {
