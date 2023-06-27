@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
 import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
-import { archiveTournament, changeTournamentStatus, findTournamentById } from "../../services/tournament";
+import { archiveTournament, changeTournamentStatus, findTournamentById, startTournament } from "../../services/tournament";
 import { Tournament, TournamentStatus, Participant, Brawler, Team } from "@prisma/client";
 import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
 import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
@@ -91,10 +91,11 @@ async function collector(
         )
         break;
       case customIds.startButton:
-        await changeTournamentStatus(
-          tournament.id,
-          TournamentStatus.IN_PROGRESS
-        )
+        const result = await startTournament(tournament.id);
+        if (result.type === 'error') {
+          await replyErrorFromResult(interaction, result);
+          return;
+        }
         break;
       case customIds.finishButton:
         await changeTournamentStatus(

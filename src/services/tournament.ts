@@ -5,7 +5,9 @@ import { Brawler, Participant, Team, Tournament, TournamentStatus } from '@prism
 import { assertIsTeamOwner } from './team';
 import * as TournamentDao from '../database/dao/tournament';
 import * as ParticipantDao from '../database/dao/participant';
-import { Failure, Result, SuccessResult } from '../result';
+import * as StageDao from '../database/dao/stage';
+import { Failure, Result, Success, SuccessResult } from '../result';
+import { manager } from '../tournament_manager/manager';
 
 export function createTournament(
   name: string,
@@ -112,6 +114,75 @@ export async function findTournamentsTeamIsSignedUpFor(team: Team): Promise<Resu
       },
     },
   });
+}
+
+export async function startTournament(
+  tournamentId: string,
+): Promise<Result<Tournament & { participants: Participant[] }, 'not-enough-participants' | 'record-not-found'>> {
+  const tournamentResult = await findTournamentById(tournamentId);
+  if (tournamentResult.type === 'error') {
+    return tournamentResult;
+  }
+
+  const { title, managerTournamentId, participants } = tournamentResult.data;
+
+  if (participants.length < 2) {
+    return Failure('not-enough-participants', 'A Tournament must have at least two participants.');
+  }
+
+  function nextPowerOfTwo(x: number) {
+    return Math.round(Math.pow(2, Math.ceil(Math.log2(x))));
+  }
+
+  const byeCount = nextPowerOfTwo(participants.length) - participants.length;
+  const stageCreateResult = await manager
+    .create({
+      name: title,
+      tournamentId: managerTournamentId,
+      type: 'single_elimination',
+      seeding: [...participants.map((p) => p.id), ...Array(byeCount).fill(null)],
+      settings: {
+        grandFinal: 'simple',
+        balanceByes: true,
+        matchesChildCount: 3,
+      },
+    })
+    .then(Success)
+    .catch((e) => Failure('internal', e.message));
+
+  if (stageCreateResult.type === 'error') {
+    return stageCreateResult;
+  }
+
+  const stageResult = await StageDao.findFirstStage({
+    where: { id: stageCreateResult.data.id },
+    include: {
+      rounds: true
+    }
+  })
+
+  if (stageResult.type === 'error') {
+    return stageResult;
+  }
+
+  const { rounds } = stageResult.data
+  const highestRound = rounds.reduce((acc, cur) => {
+    if (acc.number < cur.number) {
+      return cur;
+    }
+    return acc;
+  }, rounds[0])
+
+  // Update finals to BO5
+  const finalUpdateResult = await manager.update.matchChildCount('round', highestRound.id, 5)
+  .then(Success)
+  .catch((e) => Failure('internal', e.message));
+
+  if (finalUpdateResult.type === 'error') {
+    return finalUpdateResult;
+  }
+
+  return await changeTournamentStatus(tournamentId, TournamentStatus.IN_PROGRESS);
 }
 
 export function changeTournamentStatus(

@@ -35,8 +35,6 @@ async function collector(
   message: Message | InteractionResponse,
   { tournamentMessage, tournament, team }: TournamentSignupTeamMessageCollectorParameters,
 ) {
-  console.log(`Collector is called and will be created for ${message.id}`);
-
   const collector = message.createMessageComponentCollector({
     componentType: ComponentType.StringSelect,
     time: 3_600_000,
