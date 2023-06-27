@@ -292,6 +292,11 @@ model Round {
 model Match {
   id Int @id @default(autoincrement())
 
+  // The Discord Message ID of the Match.
+  // Used to restore functionallity to the Organizer
+  // Message for the Match.
+  discordMessageId String?
+
   // Status of the match.
   status MatchStatus
 

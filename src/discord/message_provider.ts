@@ -20,7 +20,7 @@ export type MessageProvider<CreateParameters, CollectorParameters> = {
 
 const logger = createLogger('Message Provider');
 
-export function reply(
+export async function reply(
   interaction: BaseInteraction,
   options: InteractionReplyOptions,
 ): Promise<Message | InteractionResponse<boolean> | null> {
@@ -32,7 +32,7 @@ export function reply(
     ? interaction.reply(options)
     : interaction.followUp(options);
 
-  return message.catch((error) => {
+  return await message.catch((error) => {
     logger.error(
       `An error occured when sending a reply: ${JSON.stringify(error)}`,
     );

@@ -19,6 +19,8 @@ import { ContentSquadStatusMessageUpdater } from './message_updater/content_squa
 import { ServerStatusMessageUpdater } from './message_updater/server_status_message_updater';
 import { PermanentCollector } from './permanent_collector';
 import { createLogger } from '../logging';
+import { getMatchesForEmbedsWithDiscordId } from '../services/match';
+import { TournamentMatchOrganizerMessageProvider } from './message_provider/tournament/organize/tournament_match_organizer_message_provider';
 
 const logger = createLogger('Discord Bot');
 
@@ -184,6 +186,36 @@ export class DiscordBot {
           );
         } catch (e: any) {
           logger.error(`(${tournament.title}): ${e.message}`);
+        }
+      }
+    });
+
+    const matchesResult = await getMatchesForEmbedsWithDiscordId();
+    if (matchesResult.type === 'error') {
+      logger.error(`Could get Matches for embeds to restore collectors.`);
+      return;
+    }
+
+    matchesResult.data.forEach(async (match) => {
+      if (
+        organizerChannel &&
+        organizerChannel.isTextBased() &&
+        match.discordMessageId !== null
+      ) {
+        try {
+          const message = await organizerChannel.messages.fetch(
+            match.discordMessageId,
+          );
+
+          await TournamentMatchOrganizerMessageProvider.collector(message, {
+            match,
+          });
+
+          logger.info(
+            `Setup collector for Organizer Match Message: '${match.id}'`,
+          );
+        } catch (e: any) {
+          logger.error(e.message);
         }
       }
     });

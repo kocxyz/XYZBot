@@ -3,7 +3,9 @@ import { User } from 'discord.js';
 import { findOrCreateBrawler } from './brawler';
 import {
   Brawler,
+  Match,
   Participant,
+  Stage,
   Team,
   Tournament,
   TournamentStatus,
@@ -12,6 +14,7 @@ import { assertIsTeamOwner } from './team';
 import * as TournamentDao from '../database/dao/tournament';
 import * as ParticipantDao from '../database/dao/participant';
 import * as StageDao from '../database/dao/stage';
+import * as MatchDao from '../database/dao/match';
 import { Failure, Result, Success, SuccessResult } from '../result';
 import { manager } from '../tournament_manager/manager';
 
@@ -154,12 +157,7 @@ export async function findTournamentsTeamIsSignedUpFor(
 
 export async function startTournament(
   tournamentId: string,
-): Promise<
-  Result<
-    Tournament & { participants: Participant[] },
-    'not-enough-participants' | 'record-not-found'
-  >
-> {
+): Promise<Result<Stage, 'not-enough-participants' | 'record-not-found'>> {
   const tournamentResult = await findTournamentById(tournamentId);
   if (tournamentResult.type === 'error') {
     return tournamentResult;
@@ -230,10 +228,15 @@ export async function startTournament(
     return finalUpdateResult;
   }
 
-  return await changeTournamentStatus(
+  const changeTournamentStatusResult = await changeTournamentStatus(
     tournamentId,
     TournamentStatus.IN_PROGRESS,
   );
+  if (changeTournamentStatusResult.type === 'error') {
+    return changeTournamentStatusResult;
+  }
+
+  return stageResult;
 }
 
 export function changeTournamentStatus(
@@ -285,6 +288,20 @@ export async function setTournamentSignupsMessageId(
     },
     include: {
       participants: true,
+    },
+  });
+}
+
+export async function setTournamentMatchMessageId(
+  id: number,
+  messageId: string,
+): Promise<
+  Result<Match, 'record-not-found'>
+> {
+  return MatchDao.updateMatch({
+    where: { id },
+    data: {
+      discordMessageId: messageId,
     },
   });
 }

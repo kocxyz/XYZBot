@@ -6,6 +6,7 @@ import {
   InteractionResponse,
   Message,
 } from 'discord.js';
+import { Status } from 'brackets-model';
 import {
   MessageProvider,
   reply,
@@ -15,6 +16,7 @@ import {
   archiveTournament,
   changeTournamentStatus,
   findTournamentById,
+  setTournamentMatchMessageId,
   startTournament,
 } from '../../../../services/tournament';
 import {
@@ -28,6 +30,10 @@ import { createTournamentOrganizerEmbed } from '../../../embeds/tournament/tourn
 import { createTournamentSignupListEmbed } from '../../../embeds/tournament/tournament_signups_list_embed';
 import { environment } from '../../../../environment';
 import { PermanentCollector } from '../../../permanent_collector';
+import { manager } from '../../../../tournament_manager/manager';
+import { Failure, Success } from '../../../../result';
+import { getMatchForEmbed } from '../../../../services/match';
+import { TournamentMatchOrganizerMessageProvider } from './tournament_match_organizer_message_provider';
 
 const customIds = {
   openSignupsButton: 'openSignups',
@@ -119,12 +125,70 @@ async function collector(
         }
         break;
       case customIds.startButton:
+        // Start Tournament
         const startTournamentResult = await startTournament(tournament.id);
         if (startTournamentResult.type === 'error') {
           await replyErrorFromResult(interaction, startTournamentResult);
           return;
         }
-        break;
+
+        // Grab next matches
+        const tournamentNextMatchesResult = await manager.get
+          .currentMatches(startTournamentResult.data.id)
+          .then(Success)
+          .catch((e) => Failure('internal', e.message));
+        if (tournamentNextMatchesResult.type === 'error') {
+          await replyErrorFromResult(interaction, tournamentNextMatchesResult);
+          return;
+        }
+
+        // Get next match
+        const nextMatch = tournamentNextMatchesResult.data.reduce(
+          (acc, cur) => {
+            // Check if first match qualifies
+            // Else replace with first one that can be played
+            if (acc.status !== Status.Ready && cur.status === Status.Ready) {
+              return cur;
+            }
+            // Currently found match is also ready so check if
+            // Current match is ready and smaller in number
+            if (cur.status === Status.Ready && cur.number < acc.number) {
+              return cur;
+            }
+            return acc;
+          },
+        );
+
+        const matchResult = await getMatchForEmbed(nextMatch.id);
+        if (matchResult.type === 'error') {
+          await replyErrorFromResult(interaction, matchResult);
+          return;
+        }
+
+        const tournamentMatchOrganizerEmbedInteractionMessage = await reply(
+          interaction,
+          await TournamentMatchOrganizerMessageProvider.createMessage({
+            match: matchResult.data,
+          }),
+        );
+
+        if (!tournamentMatchOrganizerEmbedInteractionMessage) {
+          return;
+        }
+
+        const tournamentMatchOrganizerEmbedMessage =
+          await tournamentMatchOrganizerEmbedInteractionMessage.fetch();
+
+        await TournamentMatchOrganizerMessageProvider.collector(
+          tournamentMatchOrganizerEmbedMessage,
+          { match: matchResult.data },
+        );
+
+        await setTournamentMatchMessageId(
+          matchResult.data.id,
+          tournamentMatchOrganizerEmbedMessage.id,
+        );
+        return;
       case customIds.finishButton:
         const finishTournamentResult = await changeTournamentStatus(
           tournament.id,
