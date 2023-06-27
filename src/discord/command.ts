@@ -1,21 +1,30 @@
-import { ChatInputCommandInteraction, Interaction, ModalBuilder, ModalSubmitInteraction, SlashCommandBuilder } from "discord.js"
+import {
+  ChatInputCommandInteraction,
+  ModalBuilder,
+  ModalSubmitInteraction,
+  SlashCommandBuilder,
+} from 'discord.js';
 
 type BaseDiscordCommand = {
-  type: 'basic' | 'modal',
-  data: SlashCommandBuilder | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>,
-}
+  type: 'basic' | 'modal';
+  data:
+    | SlashCommandBuilder
+    | Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+};
 
 export type BasicDiscordCommand = BaseDiscordCommand & {
-  type: 'basic',
-  execute: (interaction: ChatInputCommandInteraction) => Promise<void>
-}
+  type: 'basic';
+  execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+};
 
 export type ModalDiscordCommand = BaseDiscordCommand & {
-  type: 'modal',
+  type: 'modal';
 
-  customId: string,
-  createModal: (interaction: ChatInputCommandInteraction) => Promise<ModalBuilder>,
-  onSubmission: (Interaction: ModalSubmitInteraction) => Promise<void>
-}
+  customId: string;
+  createModal: (
+    interaction: ChatInputCommandInteraction,
+  ) => Promise<ModalBuilder>;
+  onSubmission: (Interaction: ModalSubmitInteraction) => Promise<void>;
+};
 
-export type DiscordCommand = BasicDiscordCommand | ModalDiscordCommand
+export type DiscordCommand = BasicDiscordCommand | ModalDiscordCommand;

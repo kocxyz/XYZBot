@@ -7,7 +7,11 @@ import {
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
 import { Brawler, Tournament, Team } from '@prisma/client';
-import { MessageProvider, reply, replyErrorFromResult } from '../message_provider';
+import {
+  MessageProvider,
+  reply,
+  replyErrorFromResult,
+} from '../message_provider';
 import { signupForTeamTournament } from '../../services/tournament';
 import { TournamentSignupMessageProvider } from './tournament_signup_message_provider';
 
@@ -15,25 +19,38 @@ const customIds = {
   users: 'users',
 } as const;
 
-async function createMessage({ tournament, team }: TournamentSignupTeamMessageCreateParameters) {
+async function createMessage({
+  tournament,
+  team,
+}: TournamentSignupTeamMessageCreateParameters) {
   const userSelect = new StringSelectMenuBuilder()
     .setCustomId(customIds.users)
     .setPlaceholder('Select members to signup:')
     .setMinValues(tournament.teamSize)
     .setMaxValues(tournament.teamSize)
     .addOptions([
-      ...team.members.map((m) => new StringSelectMenuOptionBuilder().setLabel(m.username).setValue(m.discordId)),
+      ...team.members.map((m) =>
+        new StringSelectMenuOptionBuilder()
+          .setLabel(m.username)
+          .setValue(m.discordId),
+      ),
     ]);
 
   return {
     content: `Please select the ${tournament.teamSize} Team Members that should participate:`,
-    components: [new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(userSelect)],
+    components: [
+      new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(userSelect),
+    ],
   };
 }
 
 async function collector(
   message: Message | InteractionResponse,
-  { tournamentMessage, tournament, team }: TournamentSignupTeamMessageCollectorParameters,
+  {
+    tournamentMessage,
+    tournament,
+    team,
+  }: TournamentSignupTeamMessageCollectorParameters,
 ) {
   const collector = message.createMessageComponentCollector({
     componentType: ComponentType.StringSelect,
@@ -42,9 +59,15 @@ async function collector(
   });
 
   collector.once('collect', async (interaction) => {
-    const users = await Promise.all(interaction.values.map((uid) => interaction.client.users.fetch(uid)));
+    const users = await Promise.all(
+      interaction.values.map((uid) => interaction.client.users.fetch(uid)),
+    );
 
-    const signupResult = await signupForTeamTournament(tournament.id, interaction.user, users);
+    const signupResult = await signupForTeamTournament(
+      tournament.id,
+      interaction.user,
+      users,
+    );
 
     if (signupResult.type === 'error') {
       await replyErrorFromResult(interaction, signupResult);

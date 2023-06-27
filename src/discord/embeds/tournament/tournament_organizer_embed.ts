@@ -1,16 +1,16 @@
-import { Tournament } from "@prisma/client";
-import { RestOrArray, APIEmbedField, EmbedBuilder } from "discord.js";
-import { DEFAULT_AUTH_URL, getServers } from "knockoutcity-auth-client";
+import { Tournament } from '@prisma/client';
+import { RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
+import { DEFAULT_AUTH_URL, getServers } from 'knockoutcity-auth-client';
 
 async function buildSummaryFields(
-  tournament: Tournament
+  tournament: Tournament,
 ): Promise<RestOrArray<APIEmbedField>> {
-  const servers = await getServers(DEFAULT_AUTH_URL)
+  const servers = await getServers(DEFAULT_AUTH_URL);
   const server = servers.data.filter(
-    (s) => `${s.id}` === tournament.serverId
-  )[0]
+    (s) => `${s.id}` === tournament.serverId,
+  )[0];
 
-  const teamSize = tournament.teamSize
+  const teamSize = tournament.teamSize;
   return [
     { name: 'Tournament Status', value: `${tournament.status}` },
     { name: 'Team Size', value: `${teamSize}v${teamSize}` },
@@ -19,13 +19,11 @@ async function buildSummaryFields(
   ];
 }
 
-export async function createTournamentOrganizerEmbed(
-  tournament: Tournament
-) {
+export async function createTournamentOrganizerEmbed(tournament: Tournament) {
   return new EmbedBuilder()
-    .setColor(0x0099FF)
+    .setColor(0x0099ff)
     .setTitle(tournament.title)
     .setDescription(tournament.description)
-    .addFields(...await buildSummaryFields(tournament))
-    .setTimestamp()
+    .addFields(...(await buildSummaryFields(tournament)))
+    .setTimestamp();
 }

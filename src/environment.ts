@@ -31,5 +31,5 @@ export const environment = load({
   TWITCH_TRACKING_UPDATE_INTERVAL: Number,
 
   // Postgres URL
-  DATABASE_URL: String
+  DATABASE_URL: String,
 });

@@ -1,12 +1,12 @@
-import { ChatInputCommandInteraction, Collection } from "discord.js";
-import { DiscordCommand } from "../command";
-import { createLogger } from "../../logging";
+import { ChatInputCommandInteraction, Collection } from 'discord.js';
+import { DiscordCommand } from '../command';
+import { createLogger } from '../../logging';
 
 const logger = createLogger('Command Handler');
 
 export async function handleCommand(
   commands: Collection<string, DiscordCommand>,
-  interaction: ChatInputCommandInteraction
+  interaction: ChatInputCommandInteraction,
 ) {
   const command = commands.get(interaction.commandName);
 
@@ -22,25 +22,21 @@ export async function handleCommand(
         break;
 
       case 'modal':
-        await interaction.showModal(
-          await command.createModal(interaction)
-        );
+        await interaction.showModal(await command.createModal(interaction));
         break;
     }
-  }
-  catch (error) {
+  } catch (error) {
     logger.error(`An error occured: ${JSON.stringify(error)}`);
 
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
         content: 'There was an error while executing this command!',
-        ephemeral: true
+        ephemeral: true,
       });
-    }
-    else {
+    } else {
       await interaction.reply({
         content: 'There was an error while executing this command!',
-        ephemeral: true
+        ephemeral: true,
       });
     }
   }

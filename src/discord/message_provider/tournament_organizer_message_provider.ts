@@ -1,11 +1,33 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
-import { archiveTournament, changeTournamentStatus, findTournamentById, startTournament } from "../../services/tournament";
-import { Tournament, TournamentStatus, Participant, Brawler, Team } from "@prisma/client";
-import { createTournamentOrganizerEmbed } from "../embeds/tournament/tournament_organizer_embed";
-import { createTournamentSignupListEmbed } from "../embeds/tournament/tournament_signups_list_embed";
-import { environment } from "../../environment";
-import { PermanentCollector } from "../permanent_collector";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  InteractionResponse,
+  Message,
+} from 'discord.js';
+import {
+  MessageProvider,
+  reply,
+  replyErrorFromResult,
+} from '../message_provider';
+import {
+  archiveTournament,
+  changeTournamentStatus,
+  findTournamentById,
+  startTournament,
+} from '../../services/tournament';
+import {
+  Tournament,
+  TournamentStatus,
+  Participant,
+  Brawler,
+  Team,
+} from '@prisma/client';
+import { createTournamentOrganizerEmbed } from '../embeds/tournament/tournament_organizer_embed';
+import { createTournamentSignupListEmbed } from '../embeds/tournament/tournament_signups_list_embed';
+import { environment } from '../../environment';
+import { PermanentCollector } from '../permanent_collector';
 
 const customIds = {
   openSignupsButton: 'openSignups',
@@ -13,63 +35,61 @@ const customIds = {
   startButton: 'start',
   finishButton: 'finish',
   listSignupsButton: 'listSignups',
-  archiveButton: 'delete'
+  archiveButton: 'delete',
 } as const;
 
-async function createMessage(
-  { tournament }: TournamentOrganizerMessageCreateParameters
-) {
+async function createMessage({
+  tournament,
+}: TournamentOrganizerMessageCreateParameters) {
   const openSignupsButton = new ButtonBuilder()
     .setCustomId(customIds.openSignupsButton)
     .setLabel('Open Signups')
-    .setStyle(ButtonStyle.Primary)
+    .setStyle(ButtonStyle.Primary);
 
   const closeSignupsButton = new ButtonBuilder()
     .setCustomId(customIds.closeSignupsButton)
     .setLabel('Close Signups')
-    .setStyle(ButtonStyle.Primary)
+    .setStyle(ButtonStyle.Primary);
 
   const startButton = new ButtonBuilder()
     .setCustomId(customIds.startButton)
     .setLabel('Start Tournament')
-    .setStyle(ButtonStyle.Success)
+    .setStyle(ButtonStyle.Success);
 
   const finishButton = new ButtonBuilder()
     .setCustomId(customIds.finishButton)
     .setLabel('Finish Tournament')
-    .setStyle(ButtonStyle.Danger)
+    .setStyle(ButtonStyle.Danger);
 
   const listSignupsButton = new ButtonBuilder()
     .setCustomId(customIds.listSignupsButton)
     .setLabel('List Signups')
-    .setStyle(ButtonStyle.Primary)
+    .setStyle(ButtonStyle.Primary);
 
   const archiveButton = new ButtonBuilder()
     .setCustomId(customIds.archiveButton)
     .setLabel('Archive Tournament')
-    .setStyle(ButtonStyle.Secondary)
+    .setStyle(ButtonStyle.Secondary);
 
   return {
     embeds: [await createTournamentOrganizerEmbed(tournament)],
     components: [
-      new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(
-          tournament.status === TournamentStatus.FINISHED
-            ? [archiveButton]
-            : tournament.status === TournamentStatus.IN_PROGRESS
-              ? [listSignupsButton, finishButton]
-              : tournament.status === TournamentStatus.SIGNUP_OPEN
-                ? [listSignupsButton, closeSignupsButton, startButton]
-                : [listSignupsButton, openSignupsButton]
-        )
-      ,
-    ]
-  }
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        tournament.status === TournamentStatus.FINISHED
+          ? [archiveButton]
+          : tournament.status === TournamentStatus.IN_PROGRESS
+          ? [listSignupsButton, finishButton]
+          : tournament.status === TournamentStatus.SIGNUP_OPEN
+          ? [listSignupsButton, closeSignupsButton, startButton]
+          : [listSignupsButton, openSignupsButton],
+      ),
+    ],
+  };
 }
 
 async function collector(
   message: Message | InteractionResponse,
-  { tournament }: TournamentOrganizerMessageCollectorParameters
+  { tournament }: TournamentOrganizerMessageCollectorParameters,
 ) {
   const collector = PermanentCollector.createMessageComponentCollector({
     message,
@@ -81,14 +101,14 @@ async function collector(
       case customIds.openSignupsButton:
         await changeTournamentStatus(
           tournament.id,
-          TournamentStatus.SIGNUP_OPEN
-        )
+          TournamentStatus.SIGNUP_OPEN,
+        );
         break;
       case customIds.closeSignupsButton:
         await changeTournamentStatus(
           tournament.id,
-          TournamentStatus.SIGNUP_CLOSED
-        )
+          TournamentStatus.SIGNUP_CLOSED,
+        );
         break;
       case customIds.startButton:
         const result = await startTournament(tournament.id);
@@ -98,32 +118,24 @@ async function collector(
         }
         break;
       case customIds.finishButton:
-        await changeTournamentStatus(
-          tournament.id,
-          TournamentStatus.FINISHED
-        )
+        await changeTournamentStatus(tournament.id, TournamentStatus.FINISHED);
         break;
       case customIds.archiveButton:
-        const archiveResult = await archiveTournament(
-          tournament.id,
-        )
+        const archiveResult = await archiveTournament(tournament.id);
 
         if (archiveResult.type === 'error') {
           await replyErrorFromResult(interaction, archiveResult);
           return;
         }
 
-        await reply(
-          interaction,
-          {
-            content: `Successfully archive Tournament: ${tournament.title}`,
-            ephemeral: true
-          }
-        )
+        await reply(interaction, {
+          content: `Successfully archive Tournament: ${tournament.title}`,
+          ephemeral: true,
+        });
 
         const organizerChannel = await interaction.client.channels.fetch(
-          environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
-        )
+          environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID,
+        );
 
         if (
           organizerChannel &&
@@ -132,32 +144,25 @@ async function collector(
         ) {
           try {
             const message = await organizerChannel.messages.fetch(
-              tournament.discordOrganizerMessageId
-            )
+              tournament.discordOrganizerMessageId,
+            );
             await message.delete();
-            await reply(
-              interaction,
-              {
-                content: `Successfully deleted Organization Message`,
-                ephemeral: true
-              }
-            )
-          }
-          catch (e: any) {
-            console.error(`(${tournament.title}): ${e.message}`)
-            await reply(
-              interaction,
-              {
-                content: `An error occured while deleting the Organization message.`,
-                ephemeral: true
-              }
-            )
+            await reply(interaction, {
+              content: `Successfully deleted Organization Message`,
+              ephemeral: true,
+            });
+          } catch (e: any) {
+            console.error(`(${tournament.title}): ${e.message}`);
+            await reply(interaction, {
+              content: `An error occured while deleting the Organization message.`,
+              ephemeral: true,
+            });
           }
         }
 
         const signupsChannel = await interaction.client.channels.fetch(
-          environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
-        )
+          environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID,
+        );
 
         if (
           signupsChannel &&
@@ -166,26 +171,19 @@ async function collector(
         ) {
           try {
             const message = await signupsChannel.messages.fetch(
-              tournament.discordSingupMessageId
-            )
-            await message.delete()
-            await reply(
-              interaction,
-              {
-                content: `Successfully deleted Signups Message`,
-                ephemeral: true
-              }
-            )
-          }
-          catch (e: any) {
-            console.error(`(${tournament.title}): ${e.message}`)
-            await reply(
-              interaction,
-              {
-                content: `An error occured while deleting the Signups message.`,
-                ephemeral: true
-              }
-            )
+              tournament.discordSingupMessageId,
+            );
+            await message.delete();
+            await reply(interaction, {
+              content: `Successfully deleted Signups Message`,
+              ephemeral: true,
+            });
+          } catch (e: any) {
+            console.error(`(${tournament.title}): ${e.message}`);
+            await reply(interaction, {
+              content: `An error occured while deleting the Signups message.`,
+              ephemeral: true,
+            });
           }
         }
 
@@ -201,13 +199,10 @@ async function collector(
           return;
         }
 
-        await reply(
-          interaction,
-          {
-            embeds: [createTournamentSignupListEmbed(tournamentResult.data)],
-            ephemeral: true
-          }
-        )
+        await reply(interaction, {
+          embeds: [createTournamentSignupListEmbed(tournamentResult.data)],
+          ephemeral: true,
+        });
         return;
     }
 
@@ -221,36 +216,33 @@ async function collector(
       return;
     }
 
-    await message.edit(
-      await createMessage({ tournament: tournamentResult.data })
-    ).catch()
+    await message
+      .edit(await createMessage({ tournament: tournamentResult.data }))
+      .catch();
 
-    await reply(
-      interaction,
-      {
-        content: 'Successfully updated Tournament',
-        ephemeral: true
-      }
-    )
-  })
+    await reply(interaction, {
+      content: 'Successfully updated Tournament',
+      ephemeral: true,
+    });
+  });
 }
 
 type TournamentOrganizerMessageCreateParameters = {
   tournament: Tournament & {
-    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[],
-  }
-}
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
+  };
+};
 
 type TournamentOrganizerMessageCollectorParameters = {
   tournament: Tournament & {
-    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[],
-  }
-}
+    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
+  };
+};
 
 export const TournamentOrganizerMessageProvider = {
   createMessage,
-  collector
+  collector,
 } satisfies MessageProvider<
   TournamentOrganizerMessageCreateParameters,
   TournamentOrganizerMessageCollectorParameters
->
+>;

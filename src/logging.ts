@@ -2,7 +2,7 @@ import winston from 'winston';
 
 const logger = winston.createLogger({
   level: 'info',
-  format: winston.format.printf(options => {
+  format: winston.format.printf((options) => {
     // you can pass any custom variable in options by calling
     // logger.log({level: 'debug', message: 'hi', moduleName: 'my_module' })
     return `[${options.moduleName}] ${options.level}: ${options.message}`;

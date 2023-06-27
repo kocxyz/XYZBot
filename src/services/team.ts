@@ -1,13 +1,16 @@
-import { User } from "discord.js";
-import { findOrCreateBrawler } from "./brawler";
-import { Failure, Result, Success } from "../result";
-import { Brawler, Team } from "@prisma/client";
-import * as TeamDao from "../database/dao/team";
-import { findTournamentsTeamIsSignedUpFor, findTournamentsUserIsSignedUpFor } from "./tournament";
+import { User } from 'discord.js';
+import { findOrCreateBrawler } from './brawler';
+import { Failure, Result, Success } from '../result';
+import { Brawler, Team } from '@prisma/client';
+import * as TeamDao from '../database/dao/team';
+import {
+  findTournamentsTeamIsSignedUpFor,
+  findTournamentsUserIsSignedUpFor,
+} from './tournament';
 
 export async function createTeam(
   user: User,
-  name: string
+  name: string,
 ): Promise<Result<Team, 'team-name-already-exists' | 'already-in-a-team'>> {
   const brawlerResult = await assertNotInTeam(user);
 
@@ -20,7 +23,7 @@ export async function createTeam(
     // We found a Team with the same name.
     return Failure(
       'team-name-already-exists',
-      'A Team with the specified name already exists.'
+      'A Team with the specified name already exists.',
     );
   }
 
@@ -29,15 +32,20 @@ export async function createTeam(
       name: name,
       ownerId: brawlerResult.data.id,
       members: {
-        connect: [{ id: brawlerResult.data.id }]
-      }
-    }
-  })
+        connect: [{ id: brawlerResult.data.id }],
+      },
+    },
+  });
 }
 
 export async function findTeamByUser(
-  user: User
-): Promise<Result<Team & { owner: Brawler | null, members: Brawler[] }, 'not-in-a-team' | 'record-not-found'>> {
+  user: User,
+): Promise<
+  Result<
+    Team & { owner: Brawler | null; members: Brawler[] },
+    'not-in-a-team' | 'record-not-found'
+  >
+> {
   const brawlerResult = await assertInTeam(user);
 
   if (brawlerResult.type === 'error') {
@@ -49,30 +57,35 @@ export async function findTeamByUser(
     include: {
       owner: true,
       members: true,
-    }
+    },
   });
 }
 
 export function findTeamByName(
-  name: string
-): Promise<Result<Team & { owner: Brawler | null, members: Brawler[] }, 'record-not-found'>> {
+  name: string,
+): Promise<
+  Result<
+    Team & { owner: Brawler | null; members: Brawler[] },
+    'record-not-found'
+  >
+> {
   return TeamDao.findFirstTeam({
     where: {
       name: {
         equals: name,
-        mode: 'insensitive'
-      }
+        mode: 'insensitive',
+      },
     },
     include: {
       owner: true,
       members: true,
-    }
+    },
   });
 }
 
 export async function joinTeam(
   id: string,
-  user: User
+  user: User,
 ): Promise<Result<Team, 'already-in-a-team' | 'record-not-found'>> {
   const brawlerResult = await assertNotInTeam(user);
 
@@ -84,15 +97,23 @@ export async function joinTeam(
     where: { id },
     data: {
       members: {
-        connect: { id: brawlerResult.data.id }
-      }
-    }
-  })
+        connect: { id: brawlerResult.data.id },
+      },
+    },
+  });
 }
 
 export async function leaveTeam(
-  user: User
-): Promise<Result<Team, 'is-team-owner' | 'not-in-a-team' | 'signed-up-for-active-tournaments' | 'record-not-found'>> {
+  user: User,
+): Promise<
+  Result<
+    Team,
+    | 'is-team-owner'
+    | 'not-in-a-team'
+    | 'signed-up-for-active-tournaments'
+    | 'record-not-found'
+  >
+> {
   const teamResult = await findTeamByUser(user);
   if (teamResult.type === 'error') {
     return teamResult;
@@ -108,7 +129,7 @@ export async function leaveTeam(
   if (team.ownerId === brawler.id) {
     return Failure(
       'is-team-owner',
-      'You are the Team Owner and can not leave the Team. Use the disband command instead.'
+      'You are the Team Owner and can not leave the Team. Use the disband command instead.',
     );
   }
 
@@ -120,7 +141,7 @@ export async function leaveTeam(
   if (signupTournamentsResult.data.length > 0) {
     return Failure(
       'signed-up-for-active-tournaments',
-      'You are is still signed up for active Tournaments.'
+      'You are is still signed up for active Tournaments.',
     );
   }
 
@@ -128,15 +149,23 @@ export async function leaveTeam(
     where: { id: brawlerResult.data.teamId },
     data: {
       members: {
-        disconnect: { id: brawlerResult.data.id }
-      }
-    }
+        disconnect: { id: brawlerResult.data.id },
+      },
+    },
   });
 }
 
 export async function disbandTeam(
-  user: User
-): Promise<Result<Team, 'not-team-owner' | 'not-in-a-team' | 'signed-up-for-active-tournaments' | 'record-not-found'>> {
+  user: User,
+): Promise<
+  Result<
+    Team,
+    | 'not-team-owner'
+    | 'not-in-a-team'
+    | 'signed-up-for-active-tournaments'
+    | 'record-not-found'
+  >
+> {
   const result = await assertIsTeamOwner(user);
   if (result.type === 'error') {
     return result;
@@ -151,18 +180,23 @@ export async function disbandTeam(
   if (signupTournamentsResult.data.length > 0) {
     return Failure(
       'signed-up-for-active-tournaments',
-      'Your Team is still signed up for active Tournaments.'
+      'Your Team is still signed up for active Tournaments.',
     );
   }
 
   return TeamDao.deleteTeam({
-    where: { id: team.id }
+    where: { id: team.id },
   });
 }
 
 export async function assertIsTeamOwner(
-  user: User
-): Promise<Result<[Team & { owner: Brawler | null, members: Brawler[] }, Brawler], 'not-in-a-team' | 'not-team-owner' | 'record-not-found'>> {
+  user: User,
+): Promise<
+  Result<
+    [Team & { owner: Brawler | null; members: Brawler[] }, Brawler],
+    'not-in-a-team' | 'not-team-owner' | 'record-not-found'
+  >
+> {
   const teamResult = await findTeamByUser(user);
   if (teamResult.type === 'error') {
     return teamResult;
@@ -178,7 +212,7 @@ export async function assertIsTeamOwner(
   if (team.ownerId !== brawler.id) {
     return Failure(
       'not-team-owner',
-      'Only the Team Owner can perform this action.'
+      'Only the Team Owner can perform this action.',
     );
   }
 
@@ -196,13 +230,10 @@ async function assertNotInTeam(
 
   const brawler = brawlerResult.data;
   if (!assertHasNoTeamId(brawler)) {
-    return Failure(
-      'already-in-a-team',
-      'You are already in a Team!'
-    );
+    return Failure('already-in-a-team', 'You are already in a Team!');
   }
 
-  return Success(brawler)
+  return Success(brawler);
 }
 
 async function assertInTeam(
@@ -216,23 +247,20 @@ async function assertInTeam(
 
   const brawler = brawlerResult.data;
   if (!assertHasTeamId(brawler)) {
-    return Failure(
-      'not-in-a-team',
-      'You are currently not in a Team!'
-    );
+    return Failure('not-in-a-team', 'You are currently not in a Team!');
   }
 
-  return Success(brawler)
+  return Success(brawler);
 }
 
 function assertHasTeamId(
-  brawler: Brawler
+  brawler: Brawler,
 ): brawler is Brawler & { teamId: string } {
-  return brawler.teamId !== null
+  return brawler.teamId !== null;
 }
 
 function assertHasNoTeamId(
-  brawler: Brawler
+  brawler: Brawler,
 ): brawler is Brawler & { teamId: null } {
-  return brawler.teamId === null
+  return brawler.teamId === null;
 }

@@ -1,6 +1,4 @@
-import {
-  SlashCommandBuilder
-} from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { disbandTeam } from '../../../services/team';
 import { reply, replyErrorFromResult } from '../../message_provider';
@@ -20,12 +18,9 @@ export const DisbandTeamBasicCommand = {
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Successfully disbanded Team '${disbandedTeamResult.data.name}'`,
-        ephemeral: true
-      }
-    )
-  }
-} satisfies BasicDiscordCommand
+    await reply(interaction, {
+      content: `Successfully disbanded Team '${disbandedTeamResult.data.name}'`,
+      ephemeral: true,
+    });
+  },
+} satisfies BasicDiscordCommand;

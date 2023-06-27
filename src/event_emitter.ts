@@ -16,7 +16,10 @@ export class EventEmitter<Events extends EventsMap> {
    * @param callback The listener function.
    * @returns Unbind listener from event.
    */
-  public on<K extends keyof Events>(event: K, callback: Events[K]): EventUnsubscribe {
+  public on<K extends keyof Events>(
+    event: K,
+    callback: Events[K],
+  ): EventUnsubscribe {
     if (this.events[event] === undefined) {
       this.events[event] = [callback];
     } else {
@@ -24,7 +27,9 @@ export class EventEmitter<Events extends EventsMap> {
     }
 
     return () => {
-      this.events[event] = this.events[event]?.filter((index) => callback !== index);
+      this.events[event] = this.events[event]?.filter(
+        (index) => callback !== index,
+      );
     };
   }
 
@@ -34,7 +39,10 @@ export class EventEmitter<Events extends EventsMap> {
    * @param event The type of event.
    * @param args The event parameters.
    */
-  public emit<K extends keyof Events>(event: K, ...args: Parameters<Events[K]>): void {
+  public emit<K extends keyof Events>(
+    event: K,
+    ...args: Parameters<Events[K]>
+  ): void {
     const callbacks = this.events[event] || [];
     callbacks.forEach((callback) => {
       callback(...args);

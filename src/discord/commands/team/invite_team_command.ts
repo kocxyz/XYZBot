@@ -1,6 +1,4 @@
-import {
-  SlashCommandBuilder
-} from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { assertIsTeamOwner } from '../../../services/team';
 import { TeamInviteMessageProvider } from '../../message_provider/team_invite_message_provider';
@@ -12,15 +10,15 @@ export const InviteTeamBasicCommand = {
   data: new SlashCommandBuilder()
     .setName('invite-to-team')
     .setDescription('Invite a User to your Team')
-    .addUserOption(option =>
+    .addUserOption((option) =>
       option
         .setName('user')
         .setDescription('The user to invite to the Team')
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   execute: async (interaction) => {
-    const user = interaction.options.getUser('user', true)
+    const user = interaction.options.getUser('user', true);
 
     const ownerResult = await assertIsTeamOwner(interaction.user);
 
@@ -31,18 +29,13 @@ export const InviteTeamBasicCommand = {
 
     const [team] = ownerResult.data;
     const message = await user.send(
-      await TeamInviteMessageProvider.createMessage({ team })
+      await TeamInviteMessageProvider.createMessage({ team }),
     );
-    await TeamInviteMessageProvider.collector(message, { team })
+    await TeamInviteMessageProvider.collector(message, { team });
 
-    await reply(
-      interaction,
-      {
-        content: `Invite send to ${user.username}`,
-        ephemeral: true
-      }
-    )
-  }
-} satisfies BasicDiscordCommand
-
-
+    await reply(interaction, {
+      content: `Invite send to ${user.username}`,
+      ephemeral: true,
+    });
+  },
+} satisfies BasicDiscordCommand;

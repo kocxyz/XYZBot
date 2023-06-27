@@ -1,3 +1,3 @@
 export type Modal = {
-  customId: string
-}
+  customId: string;
+};

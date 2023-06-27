@@ -1,6 +1,6 @@
-import { createLogger } from "./logging";
+import { createLogger } from './logging';
 
-const logger = createLogger('General')
+const logger = createLogger('General');
 
 /**
  * The success Result
@@ -58,7 +58,7 @@ export function Success<T>(data: T): SuccessResult<T> {
  */
 export function Failure<T>(
   error: T | 'internal',
-  message: string
+  message: string,
 ): FailureResult<T | 'internal'> {
   if (error === 'internal') {
     logger.error(message);
@@ -78,26 +78,23 @@ export function Failure<T>(
  *
  * @returns The Failure Result
  */
-export function InternalErrorFailure(
-  error: Error
-): FailureResult<'internal'> {
-  return Failure(
-    'internal',
-    JSON.stringify(error)
-  );
+export function InternalErrorFailure(error: Error): FailureResult<'internal'> {
+  return Failure('internal', JSON.stringify(error));
 }
 
 /**
  * The Result of an Operation
  */
-export type Result<D, E = never> = SuccessResult<D> | FailureResult<E | 'internal'>;
+export type Result<D, E = never> =
+  | SuccessResult<D>
+  | FailureResult<E | 'internal'>;
 
 /**
  * Unwraps a Result.
- * 
+ *
  * @param result The result to unwrap
  * @param fallback The fallback value if the Result is an FailureResult
- * 
+ *
  * @returns The Result data or fallback
  */
 export function unwrapResult<Data, Fallback>(

@@ -1,6 +1,4 @@
-import {
-  SlashCommandBuilder
-} from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { leaveTeam } from '../../../services/team';
 import { reply, replyErrorFromResult } from '../../message_provider';
@@ -20,14 +18,9 @@ export const LeaveTeamBasicCommand = {
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Successfully left Team: ${leaveTeamResult.data.name}`,
-        ephemeral: true
-      }
-    )
-  }
-} satisfies BasicDiscordCommand
-
-
+    await reply(interaction, {
+      content: `Successfully left Team: ${leaveTeamResult.data.name}`,
+      ephemeral: true,
+    });
+  },
+} satisfies BasicDiscordCommand;

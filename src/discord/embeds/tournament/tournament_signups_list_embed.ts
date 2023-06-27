@@ -11,7 +11,9 @@ export function createTournamentSignupListEmbed(
     .setDescription(tournament.description)
     .addFields(
       tournament.teamSize === 1
-        ? tournament.participants.map((p) => createSoloEntryField(p.brawlers[0]))
+        ? tournament.participants.map((p) =>
+            createSoloEntryField(p.brawlers[0]),
+          )
         : createTeamEntryFields(tournament),
     );
 }

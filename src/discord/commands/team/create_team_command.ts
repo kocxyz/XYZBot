@@ -1,9 +1,10 @@
-import {
-  SlashCommandBuilder
-} from 'discord.js';
+import { SlashCommandBuilder } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { createTeam } from '../../../services/team';
-import { reply, replyError, replyErrorFromResult } from '../../message_provider';
+import {
+  reply,
+  replyErrorFromResult,
+} from '../../message_provider';
 
 export const CreateTeamBasicCommand = {
   type: 'basic',
@@ -11,16 +12,17 @@ export const CreateTeamBasicCommand = {
   data: new SlashCommandBuilder()
     .setName('create-team')
     .setDescription('Creates a new Team')
-    .addStringOption(option =>
-      option.setName('name')
+    .addStringOption((option) =>
+      option
+        .setName('name')
         .setDescription('The name of the Team')
-        .setRequired(true)
+        .setRequired(true),
     ),
 
   execute: async (interaction) => {
     const createdTeamResult = await createTeam(
       interaction.user,
-      interaction.options.getString('name', true)
+      interaction.options.getString('name', true),
     );
 
     if (createdTeamResult.type === 'error') {
@@ -28,12 +30,9 @@ export const CreateTeamBasicCommand = {
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Created Team **'${createdTeamResult.data.name}'**`,
-        ephemeral: true
-      }
-    )
-  }
-} satisfies BasicDiscordCommand
+    await reply(interaction, {
+      content: `Created Team **'${createdTeamResult.data.name}'**`,
+      ephemeral: true,
+    });
+  },
+} satisfies BasicDiscordCommand;

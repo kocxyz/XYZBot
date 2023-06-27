@@ -1,8 +1,14 @@
 import type { DiscordCommand } from './command';
 import type { ModalHandler } from './modal_handler';
-import { BaseInteraction, Client, Collection, Events, GatewayIntentBits } from 'discord.js';
-import { environment } from '../environment'
-import * as Commands from './commands'
+import {
+  BaseInteraction,
+  Client,
+  Collection,
+  Events,
+  GatewayIntentBits,
+} from 'discord.js';
+import { environment } from '../environment';
+import * as Commands from './commands';
 import { handleCommand, handleModal } from './event_handler';
 import { findTournaments } from '../services/tournament';
 import { TournamentOrganizerMessageProvider } from './message_provider/tournament_organizer_message_provider';
@@ -22,8 +28,8 @@ export class DiscordBot {
     intents: [
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent
-    ]
+      GatewayIntentBits.MessageContent,
+    ],
   });
 
   // A Tracker for twitch events
@@ -36,7 +42,7 @@ export class DiscordBot {
   private modalHandlers = new Collection<string, ModalHandler>();
 
   constructor() {
-    this.client.once(Events.ClientReady, c => {
+    this.client.once(Events.ClientReady, (c) => {
       logger.info(`Ready! Logged in as ${c.user.tag}`);
 
       this.registerTrackerHandlers();
@@ -52,36 +58,30 @@ export class DiscordBot {
 
   private registerMessageUpdaters() {
     const handleUpdates = () => {
-      ContentSquadStatusMessageUpdater.update(
-        this.client,
-        { members: this.twitchTracker.users }
-      )
+      ContentSquadStatusMessageUpdater.update(this.client, {
+        members: this.twitchTracker.users,
+      });
 
-      ServerStatusMessageUpdater.update(this.client)
-    }
+      ServerStatusMessageUpdater.update(this.client);
+    };
 
-    setInterval(
-      handleUpdates,
-      environment.DISCORD_MESSAGE_UPDATE_INTERVAL
-    );
+    setInterval(handleUpdates, environment.DISCORD_MESSAGE_UPDATE_INTERVAL);
 
-    handleUpdates()
+    handleUpdates();
   }
 
   private registerTrackerHandlers(): void {
-    this.twitchTracker.on(
-      'live',
-      (member) => handleTrackerGoOffline(this.client, member)
+    this.twitchTracker.on('live', (member) =>
+      handleTrackerGoOffline(this.client, member),
     );
 
-    this.twitchTracker.on(
-      'offline',
-      (member) => handleTrackerGoOffline(this.client, member)
+    this.twitchTracker.on('offline', (member) =>
+      handleTrackerGoOffline(this.client, member),
     );
   }
 
   private registerCommands(): void {
-    logger.info(`Registering command handlers...`)
+    logger.info(`Registering command handlers...`);
     this.commands.clear();
 
     Object.values(Commands).forEach((command) => {
@@ -89,7 +89,7 @@ export class DiscordBot {
 
       switch (command.type) {
         case 'basic':
-          this.commands.set(command.data.name, command)
+          this.commands.set(command.data.name, command);
           break;
 
         // case 'modal':
@@ -97,47 +97,50 @@ export class DiscordBot {
         //   this.modalHandlers.set(command.customId, command)
         //   break;
       }
-    })
+    });
   }
 
   private registerEventHandlers(): void {
-    logger.info(`Registering event handlers...`)
+    logger.info(`Registering event handlers...`);
     this.client.on(
       Events.InteractionCreate,
       async (interaction: BaseInteraction) => {
         if (interaction.isChatInputCommand()) {
-          logger.verbose(`Got ChatInputCommand Interaction: ${interaction.id}`)
+          logger.verbose(`Got ChatInputCommand Interaction: ${interaction.id}`);
           return await handleCommand(this.commands, interaction);
         }
 
         if (interaction.isModalSubmit()) {
-          logger.verbose(`Got ModalSubmit Interaction: ${interaction.id}`)
-          return await handleModal(this.modalHandlers, interaction)
+          logger.verbose(`Got ModalSubmit Interaction: ${interaction.id}`);
+          return await handleModal(this.modalHandlers, interaction);
         }
 
         if (interaction.isMessageComponent()) {
-          logger.verbose(`Got MessageComponent Interaction: ${interaction.id}`)
-          return PermanentCollector.emitCollect(interaction.message, interaction);
+          logger.verbose(`Got MessageComponent Interaction: ${interaction.id}`);
+          return PermanentCollector.emitCollect(
+            interaction.message,
+            interaction,
+          );
         }
-      });
+      },
+    );
   }
 
   private async restoreCollectors() {
     logger.info(`Restoring collectors...`);
     const organizerChannel = await this.client.channels.fetch(
-      environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID
-    )
+      environment.DISCORD_TOURNAMENT_ORGANIZER_CHANNEL_ID,
+    );
 
     const signupsChannel = await this.client.channels.fetch(
-      environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID
-    )
+      environment.DISCORD_TOURNAMENT_SIGNUP_CHANNEL_ID,
+    );
 
     const tournamentsResult = await findTournaments();
     if (tournamentsResult.type === 'error') {
       logger.error(`Could not find Tournaments: ${tournamentsResult.message}`);
       return;
     }
-
 
     tournamentsResult.data.forEach(async (tournament) => {
       if (
@@ -147,20 +150,18 @@ export class DiscordBot {
       ) {
         try {
           const message = await organizerChannel.messages.fetch(
-            tournament.discordOrganizerMessageId
-          )
+            tournament.discordOrganizerMessageId,
+          );
 
-          await TournamentOrganizerMessageProvider.collector(
-            message,
-            { tournament }
-          )
+          await TournamentOrganizerMessageProvider.collector(message, {
+            tournament,
+          });
 
           logger.info(
-            `Setup collector for Organizer Message: '${tournament.title}'`
-          )
-        }
-        catch (e: any) {
-          logger.error(`(${tournament.title}): ${e.message}`)
+            `Setup collector for Organizer Message: '${tournament.title}'`,
+          );
+        } catch (e: any) {
+          logger.error(`(${tournament.title}): ${e.message}`);
         }
       }
 
@@ -171,20 +172,18 @@ export class DiscordBot {
       ) {
         try {
           const message = await signupsChannel.messages.fetch(
-            tournament.discordSingupMessageId
-          )
+            tournament.discordSingupMessageId,
+          );
 
-          await TournamentSignupMessageProvider.collector(
-            message,
-            { tournament }
-          )
+          await TournamentSignupMessageProvider.collector(message, {
+            tournament,
+          });
 
           logger.info(
-            `Setup collector for Signups Message: '${tournament.title}'`
-          )
-        }
-        catch (e: any) {
-          logger.error(`(${tournament.title}): ${e.message}`)
+            `Setup collector for Signups Message: '${tournament.title}'`,
+          );
+        } catch (e: any) {
+          logger.error(`(${tournament.title}): ${e.message}`);
         }
       }
     });

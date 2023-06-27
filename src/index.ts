@@ -1,4 +1,4 @@
-import { DiscordBot } from "./discord/bot";
+import { DiscordBot } from './discord/bot';
 
-const bot = new DiscordBot()
-bot.connect()
+const bot = new DiscordBot();
+bot.connect();

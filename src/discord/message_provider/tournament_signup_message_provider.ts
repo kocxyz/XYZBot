@@ -1,44 +1,57 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ComponentType, InteractionResponse, Message } from "discord.js";
-import { createTournamentSignupEmbed } from "../embeds/tournament/tournament_signup_embed";
-import { Participant, Tournament } from "@prisma/client";
-import { MessageProvider, reply, replyErrorFromResult } from "../message_provider";
-import { signupForSoloTournament, leaveSoloTournament, leaveTeamTournament, findTournamentById } from "../../services/tournament";
-import { assertIsTeamOwner } from "../../services/team";
-import { TournamentSignupTeamMessageProvider } from "./tournament_signup_team_message_provider";
-import { PermanentCollector } from "../permanent_collector";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonInteraction,
+  ButtonStyle,
+  ComponentType,
+  InteractionResponse,
+  Message,
+} from 'discord.js';
+import { createTournamentSignupEmbed } from '../embeds/tournament/tournament_signup_embed';
+import { Participant, Tournament } from '@prisma/client';
+import {
+  MessageProvider,
+  reply,
+  replyErrorFromResult,
+} from '../message_provider';
+import {
+  signupForSoloTournament,
+  leaveSoloTournament,
+  leaveTeamTournament,
+  findTournamentById,
+} from '../../services/tournament';
+import { assertIsTeamOwner } from '../../services/team';
+import { TournamentSignupTeamMessageProvider } from './tournament_signup_team_message_provider';
+import { PermanentCollector } from '../permanent_collector';
 
 const customIds = {
   signupButton: 'signup',
-  leaveButton: 'leave'
+  leaveButton: 'leave',
 } as const;
 
 async function handleSoloInteraction(
   interaction: ButtonInteraction,
-  { tournament }: TournamentSignupMessageCollectorParameters
+  { tournament }: TournamentSignupMessageCollectorParameters,
 ): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
     const signupResult = await signupForSoloTournament(
       tournament.id,
-      interaction.user
-    )
+      interaction.user,
+    );
 
     if (signupResult.type === 'error') {
       await replyErrorFromResult(interaction, signupResult);
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Successully signed up for: ${tournament.title}`,
-        ephemeral: true
-      }
-    )
-  }
-  else if (interaction.customId === customIds.leaveButton) {
+    await reply(interaction, {
+      content: `Successully signed up for: ${tournament.title}`,
+      ephemeral: true,
+    });
+  } else if (interaction.customId === customIds.leaveButton) {
     const leaveResult = await leaveSoloTournament(
       tournament.id,
-      interaction.user
+      interaction.user,
     );
 
     if (leaveResult.type === 'error') {
@@ -46,20 +59,17 @@ async function handleSoloInteraction(
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Successully removed Tournament Entry for: ${tournament.title}`,
-        ephemeral: true
-      }
-    )
+    await reply(interaction, {
+      content: `Successully removed Tournament Entry for: ${tournament.title}`,
+      ephemeral: true,
+    });
   }
 }
 
 async function handleTeamInteraction(
   tournamentMessage: Message | InteractionResponse,
   interaction: ButtonInteraction,
-  { tournament }: TournamentSignupMessageCollectorParameters
+  { tournament }: TournamentSignupMessageCollectorParameters,
 ): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
     const ownerResult = await assertIsTeamOwner(interaction.user);
@@ -71,46 +81,38 @@ async function handleTeamInteraction(
 
     const [team] = ownerResult.data;
     if (team.members.length < tournament.teamSize) {
-      await reply(
-        interaction,
-        {
-          content: 'Your Team has not enough members. Please invite some to join the Tournament.',
-          ephemeral: true
-        }
-      )
+      await reply(interaction, {
+        content:
+          'Your Team has not enough members. Please invite some to join the Tournament.',
+        ephemeral: true,
+      });
       return;
     }
 
-    const message = await reply(
-      interaction,
-      {
-        ...await TournamentSignupTeamMessageProvider.createMessage({
-          team: team,
-          tournament: tournament
-        }),
-        ephemeral: true
-      }
-    )
+    const message = await reply(interaction, {
+      ...(await TournamentSignupTeamMessageProvider.createMessage({
+        team: team,
+        tournament: tournament,
+      })),
+      ephemeral: true,
+    });
 
     if (!message) {
       return;
     }
 
-    await TournamentSignupTeamMessageProvider.collector(
-      message,
-      {
-        team: team,
-        tournament: tournament,
-        tournamentMessage: tournamentMessage
-      }
-    )
+    await TournamentSignupTeamMessageProvider.collector(message, {
+      team: team,
+      tournament: tournament,
+      tournamentMessage: tournamentMessage,
+    });
     return;
   }
 
   if (interaction.customId === customIds.leaveButton) {
     const leaveResult = await leaveTeamTournament(
       tournament.id,
-      interaction.user
+      interaction.user,
     );
 
     if (leaveResult.type === 'error') {
@@ -118,19 +120,16 @@ async function handleTeamInteraction(
       return;
     }
 
-    await reply(
-      interaction,
-      {
-        content: `Successully removed Team Tournament Entry for: ${tournament.title}`,
-        ephemeral: true
-      }
-    )
+    await reply(interaction, {
+      content: `Successully removed Team Tournament Entry for: ${tournament.title}`,
+      ephemeral: true,
+    });
   }
 }
 
-async function createMessage(
-  { tournament }: TournamentSignupMessageCreateParameters
-) {
+async function createMessage({
+  tournament,
+}: TournamentSignupMessageCreateParameters) {
   const embed = await createTournamentSignupEmbed(tournament);
 
   const signupInput = new ButtonBuilder()
@@ -138,31 +137,33 @@ async function createMessage(
     .setLabel(
       tournament.teamSize === 1
         ? 'I want to participate!'
-        : 'We want to participate!'
+        : 'We want to participate!',
     )
-    .setStyle(ButtonStyle.Success)
+    .setStyle(ButtonStyle.Success);
 
   const leaveInput = new ButtonBuilder()
     .setCustomId(customIds.leaveButton)
     .setLabel(
       tournament.teamSize === 1
         ? 'I changed my mind.'
-        : 'We changed our minds.'
+        : 'We changed our minds.',
     )
-    .setStyle(ButtonStyle.Danger)
+    .setStyle(ButtonStyle.Danger);
 
   return {
     embeds: [embed],
     components: [
-      new ActionRowBuilder<ButtonBuilder>()
-        .addComponents(signupInput, leaveInput),
-    ]
-  }
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        signupInput,
+        leaveInput,
+      ),
+    ],
+  };
 }
 
 async function collector(
   message: Message | InteractionResponse,
-  params: TournamentSignupMessageCollectorParameters
+  params: TournamentSignupMessageCollectorParameters,
 ) {
   const collector = PermanentCollector.createMessageComponentCollector({
     message,
@@ -171,17 +172,9 @@ async function collector(
 
   collector.on('collect', async (interaction) => {
     if (params.tournament.teamSize === 1) {
-      await handleSoloInteraction(
-        interaction,
-        params
-      )
-    }
-    else {
-      await handleTeamInteraction(
-        message,
-        interaction,
-        params
-      )
+      await handleSoloInteraction(interaction, params);
+    } else {
+      await handleTeamInteraction(message, interaction, params);
     }
 
     const tournamentResult = await findTournamentById(params.tournament.id);
@@ -190,26 +183,28 @@ async function collector(
       return;
     }
 
-    await message.edit(await createMessage({ tournament: tournamentResult.data }))
+    await message.edit(
+      await createMessage({ tournament: tournamentResult.data }),
+    );
   });
 }
 
 type TournamentSignupMessageCreateParameters = {
   tournament: Tournament & {
-    participants: Participant[]
-  }
-}
+    participants: Participant[];
+  };
+};
 
 type TournamentSignupMessageCollectorParameters = {
   tournament: Tournament & {
-    participants: Participant[]
-  }
-}
+    participants: Participant[];
+  };
+};
 
 export const TournamentSignupMessageProvider = {
   createMessage,
-  collector
+  collector,
 } satisfies MessageProvider<
   TournamentSignupMessageCreateParameters,
   TournamentSignupMessageCollectorParameters
->
+>;
