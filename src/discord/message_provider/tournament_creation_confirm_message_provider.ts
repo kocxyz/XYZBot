@@ -71,6 +71,7 @@ async function collector(
   const collector = message.createMessageComponentCollector({
     componentType: ComponentType.Button,
     time: 3_600_000,
+    max: 1,
   });
 
   collector.once('collect', async (interaction) => {
@@ -161,6 +162,10 @@ async function collector(
       content: 'Successfully discarded Tournament.',
       ephemeral: true,
     });
+  });
+
+  collector.on('end', () => {
+    message.delete().catch();
   });
 }
 

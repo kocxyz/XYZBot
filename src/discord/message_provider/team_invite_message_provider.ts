@@ -48,9 +48,10 @@ async function collector(
   const collector = message.createMessageComponentCollector({
     componentType: ComponentType.Button,
     time: 3_600_000,
+    max: 1,
   });
 
-  collector.on('collect', async (interaction) => {
+  collector.once('collect', async (interaction) => {
     if (interaction.customId === customIds.declineButton) {
       await reply(interaction, {
         content: `Successfully declined invite.`,
@@ -67,6 +68,10 @@ async function collector(
     await reply(interaction, {
       content: `Successfully joined Team: ${joinTeamResult.data.name}`,
     });
+  });
+
+  collector.on('end', () => {
+    message.delete().catch();
   });
 }
 

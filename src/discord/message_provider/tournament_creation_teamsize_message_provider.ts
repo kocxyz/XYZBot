@@ -54,6 +54,7 @@ async function collector(
   const collector = message.createMessageComponentCollector({
     componentType: ComponentType.StringSelect,
     time: 3_600_000,
+    max: 1
   });
 
   collector.once('collect', async (interaction) => {
@@ -78,6 +79,10 @@ async function collector(
       teamSize,
     });
   });
+
+    collector.on('end', () => {
+      message.delete().catch();
+    });
 }
 
 type TournamentCreationTeamSizeMessageCreateParameters = {
