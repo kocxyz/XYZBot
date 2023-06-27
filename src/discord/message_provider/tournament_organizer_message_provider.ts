@@ -99,26 +99,41 @@ async function collector(
   collector.on('collect', async (interaction) => {
     switch (interaction.customId) {
       case customIds.openSignupsButton:
-        await changeTournamentStatus(
+        const openSignupsResult = await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_OPEN,
         );
+        if (openSignupsResult.type === 'error') {
+          await replyErrorFromResult(interaction, openSignupsResult);
+          return;
+        }
         break;
       case customIds.closeSignupsButton:
-        await changeTournamentStatus(
+        const closeSignupsResult = await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_CLOSED,
         );
+        if (closeSignupsResult.type === 'error') {
+          await replyErrorFromResult(interaction, closeSignupsResult);
+          return;
+        }
         break;
       case customIds.startButton:
-        const result = await startTournament(tournament.id);
-        if (result.type === 'error') {
-          await replyErrorFromResult(interaction, result);
+        const startTournamentResult = await startTournament(tournament.id);
+        if (startTournamentResult.type === 'error') {
+          await replyErrorFromResult(interaction, startTournamentResult);
           return;
         }
         break;
       case customIds.finishButton:
-        await changeTournamentStatus(tournament.id, TournamentStatus.FINISHED);
+        const finishTournamentResult = await changeTournamentStatus(
+          tournament.id,
+          TournamentStatus.FINISHED,
+        );
+        if (finishTournamentResult.type === 'error') {
+          await replyErrorFromResult(interaction, finishTournamentResult);
+          return;
+        }
         break;
       case customIds.archiveButton:
         const archiveResult = await archiveTournament(tournament.id);
@@ -186,7 +201,6 @@ async function collector(
             });
           }
         }
-
         return;
       case customIds.listSignupsButton:
         // Pull fresh data because the on in the
