@@ -11,8 +11,8 @@ import {
   MessageProvider,
   reply,
   replyErrorFromResult,
-} from '../message_provider';
-import { signupForTeamTournament } from '../../services/tournament';
+} from '../../../message_provider';
+import { signupForTeamTournament } from '../../../../services/tournament';
 import { TournamentSignupMessageProvider } from './tournament_signup_message_provider';
 
 const customIds = {

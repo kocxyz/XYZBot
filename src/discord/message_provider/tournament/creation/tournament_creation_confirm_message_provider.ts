@@ -10,18 +10,18 @@ import {
   MessageProvider,
   reply,
   replyErrorFromResult,
-} from '../message_provider';
-import { createTournamentCreationSummaryEmbed } from '../embeds/tournament/tournament_creation_embed';
+} from '../../../message_provider';
+import { createTournamentCreationSummaryEmbed } from '../../../embeds/tournament/tournament_creation_embed';
 import { KOCServer } from 'knockoutcity-auth-client';
 import {
   createTournament,
   setTournamentOrganizerMessageId,
   setTournamentSignupsMessageId,
-} from '../../services/tournament';
-import { TournamentOrganizerMessageProvider } from './tournament_organizer_message_provider';
-import { TournamentSignupMessageProvider } from './tournament_signup_message_provider';
-import { environment } from '../../environment';
-import { createLogger } from '../../logging';
+} from '../../../../services/tournament';
+import { TournamentOrganizerMessageProvider } from '../../tournament/organize/tournament_organizer_message_provider';
+import { TournamentSignupMessageProvider } from '../../tournament/signup/tournament_signup_message_provider';
+import { environment } from '../../../../environment';
+import { createLogger } from '../../../../logging';
 
 const logger = createLogger('Tournament Creation');
 

@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
-import { TournamentCreationTeamSizeMessageProvider } from '../../message_provider/tournament_creation_teamsize_message_provider';
+import { TournamentCreationTeamSizeMessageProvider } from '../../message_provider/tournament/creation/tournament_creation_teamsize_message_provider';
 import { isOrganizer } from '../../guards/role_guards';
 import { reply } from '../../message_provider';
 

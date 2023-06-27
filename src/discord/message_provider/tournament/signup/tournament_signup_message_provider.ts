@@ -7,22 +7,22 @@ import {
   InteractionResponse,
   Message,
 } from 'discord.js';
-import { createTournamentSignupEmbed } from '../embeds/tournament/tournament_signup_embed';
+import { createTournamentSignupEmbed } from '../../../embeds/tournament/tournament_signup_embed';
 import { Participant, Tournament } from '@prisma/client';
 import {
   MessageProvider,
   reply,
   replyErrorFromResult,
-} from '../message_provider';
+} from '../../../message_provider';
 import {
   signupForSoloTournament,
   leaveSoloTournament,
   leaveTeamTournament,
   findTournamentById,
-} from '../../services/tournament';
-import { assertIsTeamOwner } from '../../services/team';
+} from '../../../../services/tournament';
+import { assertIsTeamOwner } from '../../../../services/team';
 import { TournamentSignupTeamMessageProvider } from './tournament_signup_team_message_provider';
-import { PermanentCollector } from '../permanent_collector';
+import { PermanentCollector } from '../../../permanent_collector';
 
 const customIds = {
   signupButton: 'signup',

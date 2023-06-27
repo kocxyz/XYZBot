@@ -7,8 +7,8 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { MessageProvider, reply } from '../message_provider';
-import { createTournamentCreationSummaryEmbed } from '../embeds/tournament/tournament_creation_embed';
+import { MessageProvider, reply } from '../../../message_provider';
+import { createTournamentCreationSummaryEmbed } from '../../../embeds/tournament/tournament_creation_embed';
 import { TournamentCreationServerMessageProvider } from './tournament_creation_server_message_provider';
 
 const customIds = {

@@ -10,13 +10,13 @@ import {
   MessageProvider,
   reply,
   replyErrorFromResult,
-} from '../message_provider';
+} from '../../../message_provider';
 import {
   archiveTournament,
   changeTournamentStatus,
   findTournamentById,
   startTournament,
-} from '../../services/tournament';
+} from '../../../../services/tournament';
 import {
   Tournament,
   TournamentStatus,
@@ -24,10 +24,10 @@ import {
   Brawler,
   Team,
 } from '@prisma/client';
-import { createTournamentOrganizerEmbed } from '../embeds/tournament/tournament_organizer_embed';
-import { createTournamentSignupListEmbed } from '../embeds/tournament/tournament_signups_list_embed';
-import { environment } from '../../environment';
-import { PermanentCollector } from '../permanent_collector';
+import { createTournamentOrganizerEmbed } from '../../../embeds/tournament/tournament_organizer_embed';
+import { createTournamentSignupListEmbed } from '../../../embeds/tournament/tournament_signups_list_embed';
+import { environment } from '../../../../environment';
+import { PermanentCollector } from '../../../permanent_collector';
 
 const customIds = {
   openSignupsButton: 'openSignups',
