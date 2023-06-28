@@ -11,10 +11,7 @@ export async function createMatch<T extends Prisma.MatchCreateArgs>(
 export async function findManyMatches<T extends Prisma.MatchFindManyArgs>(
   args: Prisma.SelectSubset<T, Prisma.MatchFindManyArgs>,
 ): Promise<Result<Prisma.MatchGetPayload<T>[]>> {
-  return prisma.match
-    .findMany(args)
-    .then(Success)
-    .catch(InternalErrorFailure);
+  return prisma.match.findMany(args).then(Success).catch(InternalErrorFailure);
 }
 
 export async function findFirstMatch<T extends Prisma.MatchFindFirstArgs>(

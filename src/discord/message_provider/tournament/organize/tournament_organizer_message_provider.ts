@@ -36,7 +36,6 @@ const customIds = {
   openSignupsButton: 'openSignups',
   closeSignupsButton: 'closeSignups',
   startButton: 'start',
-  finishButton: 'finish',
   listSignupsButton: 'listSignups',
   archiveButton: 'delete',
 } as const;
@@ -59,11 +58,6 @@ async function createMessage({
     .setLabel('Start Tournament')
     .setStyle(ButtonStyle.Success);
 
-  const finishButton = new ButtonBuilder()
-    .setCustomId(customIds.finishButton)
-    .setLabel('Finish Tournament')
-    .setStyle(ButtonStyle.Danger);
-
   const listSignupsButton = new ButtonBuilder()
     .setCustomId(customIds.listSignupsButton)
     .setLabel('List Signups')
@@ -78,10 +72,9 @@ async function createMessage({
     embeds: [await createTournamentOrganizerEmbed(tournament)],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
-        tournament.status === TournamentStatus.FINISHED
-          ? [archiveButton]
-          : tournament.status === TournamentStatus.IN_PROGRESS
-          ? [listSignupsButton, finishButton]
+        tournament.status === TournamentStatus.FINISHED ||
+          tournament.status === TournamentStatus.IN_PROGRESS
+          ? [listSignupsButton, archiveButton]
           : tournament.status === TournamentStatus.SIGNUP_OPEN
           ? [listSignupsButton, closeSignupsButton, startButton]
           : [listSignupsButton, openSignupsButton],
@@ -170,16 +163,6 @@ async function collector(
           matchResult.data.id,
           tournamentMatchOrganizerEmbedMessage.id,
         );
-        return;
-      case customIds.finishButton:
-        const finishTournamentResult = await changeTournamentStatus(
-          tournament.id,
-          TournamentStatus.FINISHED,
-        );
-        if (finishTournamentResult.type === 'error') {
-          await replyErrorFromResult(interaction, finishTournamentResult);
-          return;
-        }
         break;
       case customIds.archiveButton:
         const archiveResult = await archiveTournament(tournament.id);

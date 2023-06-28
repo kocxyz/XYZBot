@@ -6,6 +6,7 @@ import {
   Participant,
   ParticipantMatchGameResult,
   ParticipantMatchResult,
+  Stage,
   Team,
 } from '@prisma/client';
 import * as MatchDao from '../database/dao/match';
@@ -91,6 +92,28 @@ export async function getNextMatchGame(matchId: number): Promise<
   return Success(nextGame);
 }
 
+export async function prepareMatch(
+  matchId: number,
+): Promise<Result<Match, 'record-not-found'>> {
+  return MatchDao.updateMatch({
+    where: {
+      id: matchId,
+    },
+    data: {
+      games: {
+        updateMany: {
+          where: {
+            matchId: matchId,
+          },
+          data: {
+            status: MatchStatus.READY,
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function getNextMatch(
   stageId: number,
 ): Promise<Result<BracketManager.Match | null>> {
@@ -126,6 +149,9 @@ export async function getNextMatch(
 export async function getMatchesForEmbedsWithDiscordId(): Promise<
   Result<
     (Match & {
+      stage: Stage & {
+        tournament: { id: string };
+      };
       opponent1Result:
         | ParticipantMatchResult & {
             participant:
@@ -156,6 +182,15 @@ export async function getMatchesForEmbedsWithDiscordId(): Promise<
       },
     },
     include: {
+      stage: {
+        include: {
+          tournament: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
       opponent1Result: {
         include: {
           participant: {
@@ -197,6 +232,9 @@ export async function getMatchesForEmbedsWithDiscordId(): Promise<
 export async function getMatchForEmbed(id: number): Promise<
   Result<
     Match & {
+      stage: Stage & {
+        tournament: { id: string };
+      };
       opponent1Result:
         | ParticipantMatchResult & {
             participant:
@@ -224,6 +262,15 @@ export async function getMatchForEmbed(id: number): Promise<
   const matchResult = await MatchDao.findFirstMatch({
     where: { id },
     include: {
+      stage: {
+        include: {
+          tournament: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
       opponent1Result: {
         include: {
           participant: {
@@ -264,6 +311,10 @@ export async function getMatchForEmbed(id: number): Promise<
 
 function validateMatch(
   match: Match & {
+    stage:
+      | Stage & {
+          tournament: { id: string };
+        };
     opponent1Result:
       | (ParticipantMatchResult & {
           participant:
@@ -290,6 +341,9 @@ function validateMatch(
     })[];
   },
 ): match is Match & {
+  stage: Stage & {
+    tournament: { id: string };
+  };
   opponent1Result:
     | ParticipantMatchResult & {
         participant:

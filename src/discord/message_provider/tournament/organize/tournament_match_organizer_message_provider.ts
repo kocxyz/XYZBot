@@ -22,18 +22,28 @@ import {
   ParticipantMatchGameResult,
   Team,
   MatchStatus,
+  TournamentStatus,
+  Stage,
 } from '@prisma/client';
 import { PermanentCollector } from '../../../permanent_collector';
 import {
   getMatchForEmbed,
+  getNextMatch,
   getNextMatchGame,
+  prepareMatch,
   updateMatchGameScore,
 } from '../../../../services/match';
+import {
+  changeTournamentStatus,
+  setTournamentMatchMessageId,
+} from '../../../../services/tournament';
 
 const customIds = {
   enterScoreTeam1: 'enterScoreTeam1',
   enterScoreTeam2: 'enterScoreTeam2',
-  nextGameButton: 'nextGame',
+  finishGameButton: 'finishGame',
+  nextMatchButton: 'nextMatch',
+  finishTournamentButton: 'finishTournament',
 } as const;
 
 async function handleScoreUpdate(
@@ -50,6 +60,7 @@ async function handleScoreUpdate(
     if (!scoreCollector) {
       await reply(interaction, {
         content: `Could not crete score collector.`,
+        ephemeral: true,
       });
       return;
     }
@@ -63,6 +74,7 @@ async function handleScoreUpdate(
       if (!collectedMessage) {
         await reply(interaction, {
           content: `No message collected.`,
+          ephemeral: true,
         });
         return;
       }
@@ -109,11 +121,24 @@ async function updateMessage(
 async function createMessage({
   match,
 }: TournamentMatchOrganizerMessageCreateParameters) {
-  const nextGameButton = new ButtonBuilder()
-    .setCustomId(customIds.nextGameButton)
-    .setLabel('Next Game')
+  const finishGameButton = new ButtonBuilder()
+    .setCustomId(customIds.finishGameButton)
+    .setLabel('Finish Game')
     .setStyle(ButtonStyle.Success)
-    .setDisabled(match.status === MatchStatus.COMPLETED);
+    .setDisabled(
+      match.opponent1Result.score === null ||
+        match.opponent2Result.score === null,
+    );
+
+  const nextMatchButton = new ButtonBuilder()
+    .setCustomId(customIds.nextMatchButton)
+    .setLabel('Next Match')
+    .setStyle(ButtonStyle.Success);
+
+  const finishTournamentButton = new ButtonBuilder()
+    .setCustomId(customIds.finishTournamentButton)
+    .setLabel('Finish Tournament')
+    .setStyle(ButtonStyle.Success);
 
   const enterScoreTeam1Button = new ButtonBuilder()
     .setCustomId(customIds.enterScoreTeam1)
@@ -131,7 +156,11 @@ async function createMessage({
       new ActionRowBuilder<ButtonBuilder>().addComponents([
         enterScoreTeam1Button,
         enterScoreTeam2Button,
-        nextGameButton,
+        ...(match.status !== MatchStatus.COMPLETED
+          ? [finishGameButton]
+          : [
+              match.childCount !== 5 ? nextMatchButton : finishTournamentButton,
+            ]),
       ]),
     ],
   };
@@ -158,7 +187,7 @@ async function collector(
         await updateMessage(interaction, message, match);
         break;
 
-      case customIds.nextGameButton:
+      case customIds.finishGameButton:
         const nextMatchGameResult = await getNextMatchGame(match.id);
         if (nextMatchGameResult.type === 'error') {
           await replyErrorFromResult(interaction, nextMatchGameResult);
@@ -218,12 +247,87 @@ async function collector(
 
         await updateMessage(interaction, message, match);
         break;
+
+      case customIds.nextMatchButton:
+        const nextMatchResult = await getNextMatch(match.stageId);
+        if (nextMatchResult.type === 'error') {
+          await replyErrorFromResult(interaction, nextMatchResult);
+          return;
+        }
+
+        if (!nextMatchResult.data) {
+          return;
+        }
+
+        const matchResult = await getMatchForEmbed(nextMatchResult.data.id);
+        if (matchResult.type === 'error') {
+          await replyErrorFromResult(interaction, matchResult);
+          return;
+        }
+
+        const prepareMatchResult = await prepareMatch(matchResult.data.id);
+        if (prepareMatchResult.type === 'error') {
+          await replyErrorFromResult(interaction, prepareMatchResult);
+          return;
+        }
+
+        const tournamentMatchOrganizerEmbedInteractionMessage = await reply(
+          interaction,
+          await TournamentMatchOrganizerMessageProvider.createMessage({
+            match: matchResult.data,
+          }),
+        );
+
+        if (!tournamentMatchOrganizerEmbedInteractionMessage) {
+          return;
+        }
+
+        const tournamentMatchOrganizerEmbedMessage =
+          await tournamentMatchOrganizerEmbedInteractionMessage.fetch();
+
+        await TournamentMatchOrganizerMessageProvider.collector(
+          tournamentMatchOrganizerEmbedMessage,
+          { match: matchResult.data },
+        );
+
+        await setTournamentMatchMessageId(
+          matchResult.data.id,
+          tournamentMatchOrganizerEmbedMessage.id,
+        );
+
+        await setTournamentMatchMessageId(match.id, null);
+
+        await message.delete();
+        break;
+
+      case customIds.finishTournamentButton:
+        const changeTournamentStatusResult = await changeTournamentStatus(
+          match.stage.tournament.id,
+          TournamentStatus.FINISHED,
+        );
+
+        if (changeTournamentStatusResult.type === 'error') {
+          await replyErrorFromResult(interaction, changeTournamentStatusResult);
+          return;
+        }
+
+        await setTournamentMatchMessageId(match.id, null);
+        await message.delete().catch();
+
+        await reply(interaction, {
+          content: `Tournament successfully finished!`,
+          ephemeral: true,
+        });
+        break;
     }
   });
 }
 
 type TournamentMatchOrganizerMessageCreateParameters = {
   match: Match & {
+    stage: Stage & {
+      tournament: { id: string };
+    };
     opponent1Result:
       | ParticipantMatchResult & {
           participant:
@@ -249,6 +353,9 @@ type TournamentMatchOrganizerMessageCreateParameters = {
 
 type TournamentMatchOrganizerMessageCollectorParameters = {
   match: Match & {
+    stage: Stage & {
+      tournament: { id: string };
+    };
     opponent1Result:
       | ParticipantMatchResult & {
           participant:
