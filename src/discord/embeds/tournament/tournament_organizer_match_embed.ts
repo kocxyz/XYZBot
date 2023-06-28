@@ -98,7 +98,9 @@ export async function createTournamentMatchOrganizerEmbed(
         name: `\n`,
         value: '\n',
       },
-      ...match.games.map(getMatchGameField),
+      ...match.games
+        .sort((a, b) => (a.number < b.number ? -1 : 1))
+        .map(getMatchGameField),
     ])
     .setTimestamp();
 }

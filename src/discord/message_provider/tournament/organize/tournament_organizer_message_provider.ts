@@ -6,7 +6,6 @@ import {
   InteractionResponse,
   Message,
 } from 'discord.js';
-import { Status } from 'brackets-model';
 import {
   MessageProvider,
   reply,
@@ -30,9 +29,7 @@ import { createTournamentOrganizerEmbed } from '../../../embeds/tournament/tourn
 import { createTournamentSignupListEmbed } from '../../../embeds/tournament/tournament_signups_list_embed';
 import { environment } from '../../../../environment';
 import { PermanentCollector } from '../../../permanent_collector';
-import { manager } from '../../../../tournament_manager/manager';
-import { Failure, Success } from '../../../../result';
-import { getMatchForEmbed } from '../../../../services/match';
+import { getMatchForEmbed, getNextMatch } from '../../../../services/match';
 import { TournamentMatchOrganizerMessageProvider } from './tournament_match_organizer_message_provider';
 
 const customIds = {
@@ -132,34 +129,19 @@ async function collector(
           return;
         }
 
-        // Grab next matches
-        const tournamentNextMatchesResult = await manager.get
-          .currentMatches(startTournamentResult.data.id)
-          .then(Success)
-          .catch((e) => Failure('internal', e.message));
-        if (tournamentNextMatchesResult.type === 'error') {
-          await replyErrorFromResult(interaction, tournamentNextMatchesResult);
+        const nextMatchResult = await getNextMatch(
+          startTournamentResult.data.id,
+        );
+        if (nextMatchResult.type === 'error') {
+          await replyErrorFromResult(interaction, nextMatchResult);
           return;
         }
 
-        // Get next match
-        const nextMatch = tournamentNextMatchesResult.data.reduce(
-          (acc, cur) => {
-            // Check if first match qualifies
-            // Else replace with first one that can be played
-            if (acc.status !== Status.Ready && cur.status === Status.Ready) {
-              return cur;
-            }
-            // Currently found match is also ready so check if
-            // Current match is ready and smaller in number
-            if (cur.status === Status.Ready && cur.number < acc.number) {
-              return cur;
-            }
-            return acc;
-          },
-        );
+        if (!nextMatchResult.data) {
+          return;
+        }
 
-        const matchResult = await getMatchForEmbed(nextMatch.id);
+        const matchResult = await getMatchForEmbed(nextMatchResult.data.id);
         if (matchResult.type === 'error') {
           await replyErrorFromResult(interaction, matchResult);
           return;
