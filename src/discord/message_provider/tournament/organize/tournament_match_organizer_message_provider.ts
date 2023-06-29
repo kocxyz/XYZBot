@@ -92,8 +92,8 @@ async function handleScoreUpdate(
 
       await updateMatchGameScore(nextMatchGameResult.data.id, opponent, score);
 
-      await questionMessage?.delete();
-      await collectedMessage.delete().catch();
+      await questionMessage?.delete().catch(() => {});
+      await collectedMessage.delete().catch(() => {});
 
       resolve();
     });
