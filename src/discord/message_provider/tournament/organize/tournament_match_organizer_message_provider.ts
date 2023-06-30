@@ -30,7 +30,6 @@ import {
   getMatchForEmbed,
   getNextMatch,
   getNextMatchGame,
-  prepareMatch,
   updateMatchGameScore,
 } from '../../../../services/match';
 import {
@@ -262,12 +261,6 @@ async function collector(
         const matchResult = await getMatchForEmbed(nextMatchResult.data.id);
         if (matchResult.type === 'error') {
           await replyErrorFromResult(interaction, matchResult);
-          return;
-        }
-
-        const prepareMatchResult = await prepareMatch(matchResult.data.id);
-        if (prepareMatchResult.type === 'error') {
-          await replyErrorFromResult(interaction, prepareMatchResult);
           return;
         }
 

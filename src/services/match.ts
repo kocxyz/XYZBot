@@ -92,28 +92,6 @@ export async function getNextMatchGame(matchId: number): Promise<
   return Success(nextGame);
 }
 
-export async function prepareMatch(
-  matchId: number,
-): Promise<Result<Match, 'record-not-found'>> {
-  return MatchDao.updateMatch({
-    where: {
-      id: matchId,
-    },
-    data: {
-      games: {
-        updateMany: {
-          where: {
-            matchId: matchId,
-          },
-          data: {
-            status: MatchStatus.READY,
-          },
-        },
-      },
-    },
-  });
-}
-
 export async function getNextMatch(
   stageId: number,
 ): Promise<Result<BracketManager.Match | null>> {
