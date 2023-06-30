@@ -4,7 +4,6 @@ import { findOrCreateBrawler } from './brawler';
 import {
   Brawler,
   Match,
-  MatchStatus,
   Participant,
   Stage,
   Team,
@@ -215,46 +214,6 @@ export async function startTournament(
 
   if (stageResult.type === 'error') {
     return stageResult;
-  }
-
-  // Check if we have byes.
-  // If so we need to mark them as completed.
-  // See: https://github.com/Drarig29/brackets-manager.js/issues/172
-  // Can be removed once that bug is fixed.
-  if (byeCount > 0) {
-    const results = await Promise.all(
-      stageResult.data.matches.map((match) => {
-        if (match.opponent1Result !== null && match.opponent2Result !== null) {
-          return Success(null);
-        }
-
-        return MatchDao.updateMatch({
-          where: {
-            id: match.id,
-          },
-          data: {
-            status: MatchStatus.COMPLETED,
-            games: {
-              updateMany: {
-                where: {
-                  matchId: match.id,
-                },
-                data: {
-                  status: MatchStatus.COMPLETED,
-                },
-              },
-            },
-          },
-        });
-      }),
-    );
-
-    if (results.some((r) => r.type === 'error')) {
-      return Failure(
-        'internal',
-        'Could not mark all BYE Matches and Match Games as completed.',
-      );
-    }
   }
 
   const { rounds } = stageResult.data;
