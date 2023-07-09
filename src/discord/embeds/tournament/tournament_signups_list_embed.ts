@@ -34,11 +34,11 @@ function createTeamEntryFields(
     return [
       { name: '\n', value: '\n' },
       { name: 'Team', value: participant.team?.name ?? '-', inline: true },
-      ...participant.brawlers.map((b, index) => ({
-        name: `Player ${index + 1}`,
-        value: b.username,
+      {
+        name: 'Players',
+        value: participant.brawlers.map((b) => b.username).join('\n'),
         inline: true,
-      })),
+      },
     ];
   });
 }
