@@ -115,6 +115,10 @@ async function collector(
         }
         break;
       case customIds.startButton:
+        await reply(interaction, {
+          content: 'Starting Tournament...',
+        });
+
         // Start Tournament
         const startTournamentResult = await startTournament(tournament.id);
         if (startTournamentResult.type === 'error') {
@@ -246,7 +250,7 @@ async function collector(
           embeds: [createTournamentSignupListEmbed(tournamentResult.data)],
           ephemeral: true,
         });
-        return;
+        break;
     }
 
     // Pull fresh data because the on in the
