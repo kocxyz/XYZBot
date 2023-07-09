@@ -248,6 +248,11 @@ async function collector(
         break;
 
       case customIds.nextMatchButton:
+        await reply(interaction, {
+          content: 'Starting next Match...',
+          ephemeral: true,
+        });
+
         const nextMatchResult = await getNextMatch(match.stageId);
         if (nextMatchResult.type === 'error') {
           await replyErrorFromResult(interaction, nextMatchResult);
