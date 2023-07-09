@@ -104,6 +104,14 @@ export async function getNextMatch(
     return tournamentNextMatchesResult;
   }
 
+  const roundResult = await manager.get
+    .currentRound(stageId)
+    .then(Success)
+    .catch((e) => Failure('internal', e.message));
+  if (roundResult.type === 'error') {
+    return roundResult;
+  }
+
   // Get next match
   const nextMatch =
     tournamentNextMatchesResult.data.reduce<BracketManager.Match | null>(
@@ -112,7 +120,8 @@ export async function getNextMatch(
         // Current match is ready and smaller in number
         if (
           cur.status === BracketManager.Status.Ready &&
-          cur.number < (acc?.number ?? Number.POSITIVE_INFINITY)
+          cur.number < (acc?.number ?? Number.POSITIVE_INFINITY) &&
+          cur.round_id === roundResult.data?.id
         ) {
           return cur;
         }
