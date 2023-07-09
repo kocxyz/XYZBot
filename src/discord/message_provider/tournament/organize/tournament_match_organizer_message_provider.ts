@@ -187,6 +187,11 @@ async function collector(
         break;
 
       case customIds.finishGameButton:
+        await reply(interaction, {
+          content: 'Finishing Match Game...',
+          ephemeral: true,
+        });
+
         const nextMatchGameResult = await getNextMatchGame(match.id);
         if (nextMatchGameResult.type === 'error') {
           await replyErrorFromResult(interaction, nextMatchGameResult);
@@ -299,6 +304,11 @@ async function collector(
         break;
 
       case customIds.finishTournamentButton:
+        await reply(interaction, {
+          content: 'Finishing Tournament...',
+          ephemeral: true,
+        });
+
         const changeTournamentStatusResult = await changeTournamentStatus(
           match.stage.tournament.id,
           TournamentStatus.FINISHED,
