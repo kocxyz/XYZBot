@@ -2,7 +2,7 @@ import type { Brawler } from '@prisma/client';
 import { User } from 'discord.js';
 import { DEFAULT_AUTH_URL, getUser } from 'knockoutcity-auth-client';
 import * as BrawlerDao from '../database/dao/brawler';
-import { InternalErrorFailure, Result, Success } from '../result';
+import { Failure, InternalErrorFailure, Result, Success } from '../result';
 
 export async function findOrCreateBrawler(
   user: User,
@@ -24,7 +24,18 @@ export async function findOrCreateBrawler(
 async function createBrawler(user: User): Promise<Result<Brawler>> {
   const userDataResult = await getUser(DEFAULT_AUTH_URL, user.id)
     .then(Success)
-    .catch(InternalErrorFailure);
+    .catch((error) => {
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data &&
+        error.response.data.type === 'invalid_account'
+      ) {
+        return Failure('internal', 'No User for Discord Account found.');
+      }
+
+      return InternalErrorFailure(error);
+    });
 
   if (userDataResult.type === 'error') {
     return userDataResult;
