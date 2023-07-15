@@ -1,0 +1,13 @@
+diff --git a/node_modules/brackets-manager/dist/get.js b/node_modules/brackets-manager/dist/get.js
+index ff7df73..3c9e923 100644
+--- a/node_modules/brackets-manager/dist/get.js
++++ b/node_modules/brackets-manager/dist/get.js
+@@ -99,7 +99,7 @@ class Get extends getter_1.BaseGetter {
+             throw Error('Error getting matches.');
+         const matchesByRound = helpers.splitBy(matches, 'round_id');
+         for (const roundMatches of matchesByRound) {
+-            if (roundMatches.every(match => match.status >= brackets_model_1.Status.Completed))
++            if (roundMatches.every(match => !helpers.isMatchOngoing(match)))
+                 continue;
+             const round = await this.storage.select('round', roundMatches[0].round_id);
+             if (!round)
