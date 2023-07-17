@@ -20,6 +20,8 @@ export const CreateTeamBasicCommand = {
     ),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const createdTeamResult = await createTeam(
       interaction.user,
       interaction.options.getString('name', true),

@@ -59,6 +59,8 @@ async function collector(
   });
 
   collector.once('collect', async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+
     const users = await Promise.all(
       interaction.values.map((uid) => interaction.client.users.fetch(uid)),
     );

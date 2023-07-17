@@ -95,6 +95,8 @@ async function collector(
   collector.on('collect', async (interaction) => {
     switch (interaction.customId) {
       case customIds.openSignupsButton:
+        await interaction.deferReply({ ephemeral: true });
+
         const openSignupsResult = await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_OPEN,
@@ -105,6 +107,8 @@ async function collector(
         }
         break;
       case customIds.closeSignupsButton:
+        await interaction.deferReply({ ephemeral: true });
+
         const closeSignupsResult = await changeTournamentStatus(
           tournament.id,
           TournamentStatus.SIGNUP_CLOSED,
@@ -115,9 +119,7 @@ async function collector(
         }
         break;
       case customIds.startButton:
-        await reply(interaction, {
-          content: 'Starting Tournament...',
-        });
+        await interaction.deferReply({ ephemeral: true });
 
         // Start Tournament
         const startTournamentResult = await startTournament(tournament.id);
@@ -169,6 +171,8 @@ async function collector(
         );
         break;
       case customIds.archiveButton:
+        await interaction.deferReply({ ephemeral: true });
+
         const archiveResult = await archiveTournament(tournament.id);
 
         if (archiveResult.type === 'error') {
@@ -236,6 +240,8 @@ async function collector(
         }
         return;
       case customIds.listSignupsButton:
+        await interaction.deferReply({ ephemeral: true });
+
         // Pull fresh data because the on in the
         // tournament object can be old since it
         // is not updated when signups change.

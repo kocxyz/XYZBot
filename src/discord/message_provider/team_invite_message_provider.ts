@@ -52,6 +52,8 @@ async function collector(
   });
 
   collector.once('collect', async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+
     if (interaction.customId === customIds.declineButton) {
       await reply(interaction, {
         content: `Successfully declined invite.`,

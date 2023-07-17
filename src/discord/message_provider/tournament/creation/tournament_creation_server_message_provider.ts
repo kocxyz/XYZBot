@@ -59,6 +59,8 @@ async function collector(
   });
 
   collector.once('collect', async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+
     const server = servers.data[parseInt(interaction.values[0])];
 
     const message = await reply(interaction, {

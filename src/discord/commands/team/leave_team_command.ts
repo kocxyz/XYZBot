@@ -11,6 +11,8 @@ export const LeaveTeamBasicCommand = {
     .setDescription('Leave your current Team'),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const leaveTeamResult = await leaveTeam(interaction.user);
 
     if (leaveTeamResult.type === 'error') {

@@ -75,6 +75,8 @@ async function collector(
   });
 
   collector.once('collect', async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+
     if (interaction.customId === customIds.confirmButton) {
       const tournamentResult = await createTournament(name, description, {
         teamSize,

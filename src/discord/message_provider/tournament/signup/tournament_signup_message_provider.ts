@@ -72,6 +72,8 @@ async function handleTeamInteraction(
   { tournament }: TournamentSignupMessageCollectorParameters,
 ): Promise<void> {
   if (interaction.customId === customIds.signupButton) {
+    await interaction.deferReply({ ephemeral: true });
+
     const ownerResult = await assertIsTeamOwner(interaction.user);
 
     if (ownerResult.type === 'error') {
@@ -110,6 +112,8 @@ async function handleTeamInteraction(
   }
 
   if (interaction.customId === customIds.leaveButton) {
+    await interaction.deferReply({ ephemeral: true });
+
     const leaveResult = await leaveTeamTournament(
       tournament.id,
       interaction.user,

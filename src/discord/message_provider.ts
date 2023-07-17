@@ -28,7 +28,7 @@ export async function reply(
     return Promise.resolve(null);
   }
 
-  const message = !interaction.replied
+  const message = !interaction.replied && !interaction.deferred
     ? interaction.reply(options)
     : interaction.followUp(options);
 

@@ -11,6 +11,8 @@ export const DisbandTeamBasicCommand = {
     .setDescription('Disband the Team'),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const disbandedTeamResult = await disbandTeam(interaction.user);
 
     if (disbandedTeamResult.type === 'error') {

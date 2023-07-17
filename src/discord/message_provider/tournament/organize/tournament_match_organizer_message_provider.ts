@@ -187,10 +187,7 @@ async function collector(
         break;
 
       case customIds.finishGameButton:
-        await reply(interaction, {
-          content: 'Finishing Match Game...',
-          ephemeral: true,
-        });
+        await interaction.deferReply({ ephemeral: true });
 
         const nextMatchGameResult = await getNextMatchGame(match.id);
         if (nextMatchGameResult.type === 'error') {
@@ -243,20 +240,16 @@ async function collector(
           });
           return;
         }
+        await updateMessage(interaction, message, match);
 
         await reply(interaction, {
-          content: 'Successfully started next Game.',
+          content: 'Started next Game.',
           ephemeral: true,
         });
-
-        await updateMessage(interaction, message, match);
         break;
 
       case customIds.nextMatchButton:
-        await reply(interaction, {
-          content: 'Starting next Match...',
-          ephemeral: true,
-        });
+        await interaction.deferReply({ ephemeral: true });
 
         const nextMatchResult = await getNextMatch(match.stageId);
         if (nextMatchResult.type === 'error') {
@@ -301,13 +294,15 @@ async function collector(
         await setTournamentMatchMessageId(match.id, null);
 
         await message.delete();
+
+        await reply(interaction, {
+          content: `Next Match started!`,
+          ephemeral: true,
+        });
         break;
 
       case customIds.finishTournamentButton:
-        await reply(interaction, {
-          content: 'Finishing Tournament...',
-          ephemeral: true,
-        });
+        await interaction.deferReply({ ephemeral: true });
 
         const changeTournamentStatusResult = await changeTournamentStatus(
           match.stage.tournament.id,

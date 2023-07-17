@@ -18,6 +18,8 @@ export const UserBasicCommand = {
     ),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const user = interaction.options.getUser('name', false) ?? interaction.user;
 
     const userData = await getUser(DEFAULT_AUTH_URL, user.id).catch(() => null);

@@ -18,6 +18,8 @@ export const TeamBasicCommand = {
     ),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const teamName = interaction.options.getString('name', false);
     const teamResult =
       teamName === null

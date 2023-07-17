@@ -18,6 +18,8 @@ export const InviteTeamBasicCommand = {
     ),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     const user = interaction.options.getUser('user', true);
 
     const ownerResult = await assertIsTeamOwner(interaction.user);

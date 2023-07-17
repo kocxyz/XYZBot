@@ -24,6 +24,8 @@ export const CreateTournamentBasicCommand = {
     ),
 
   execute: async (interaction) => {
+    await interaction.deferReply({ ephemeral: true });
+    
     if (!(await isOrganizer(interaction))) {
       await reply(interaction, {
         content: 'You are not allowed to use this command.',
