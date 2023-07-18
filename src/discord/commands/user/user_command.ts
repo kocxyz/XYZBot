@@ -23,7 +23,7 @@ export const UserBasicCommand = {
     ),
 
   execute: async (interaction) => {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
 
     const user = interaction.options.getUser('name', false) ?? interaction.user;
 
