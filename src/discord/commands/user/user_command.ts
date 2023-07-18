@@ -1,4 +1,9 @@
-import { SlashCommandBuilder } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  SlashCommandBuilder,
+} from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
 import { DEFAULT_AUTH_URL, getUser } from 'knockoutcity-auth-client';
 import { createUserEmbed } from '../../embeds/user_embed';
@@ -19,7 +24,7 @@ export const UserBasicCommand = {
 
   execute: async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    
+
     const user = interaction.options.getUser('name', false) ?? interaction.user;
 
     const userData = await getUser(DEFAULT_AUTH_URL, user.id).catch(() => null);
@@ -34,6 +39,16 @@ export const UserBasicCommand = {
 
     await reply(interaction, {
       embeds: [await createUserEmbed(interaction, user, userData.data)],
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents([
+          new ButtonBuilder()
+            .setLabel('See on Brawler Index')
+            .setURL(
+              `https://brawler.kocity.xyz/brawler/${userData.data.username}`,
+            )
+            .setStyle(ButtonStyle.Link),
+        ]),
+      ],
     });
   },
 } satisfies BasicDiscordCommand;
