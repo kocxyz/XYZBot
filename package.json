@@ -14,7 +14,7 @@
     "@prisma/client": "^4.15.0",
     "@twurple/api": "^6.2.1",
     "@twurple/auth": "^6.2.1",
-    "brackets-manager": "^1.6.3",
+    "brackets-manager": "1.5.9",
     "brackets-prisma-db": "^1.0.1",
     "discord.js": "^14.11.0",
     "knockoutcity-auth-client": "^1.0.0-alpha.2",
