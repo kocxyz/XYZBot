@@ -1,6 +1,6 @@
 import type { Brawler } from '@prisma/client';
 import { User } from 'discord.js';
-import { DEFAULT_AUTH_URL, getUser } from 'knockoutcity-auth-client';
+import { DEFAULT_AUTH_URL, getUserById } from 'knockoutcity-auth-client';
 import * as BrawlerDao from '../database/dao/brawler';
 import { Failure, InternalErrorFailure, Result, Success } from '../result';
 
@@ -22,7 +22,7 @@ export async function findOrCreateBrawler(
 }
 
 async function createBrawler(user: User): Promise<Result<Brawler>> {
-  const userDataResult = await getUser(DEFAULT_AUTH_URL, user.id)
+  const userDataResult = await getUserById(DEFAULT_AUTH_URL, user.id)
     .then(Success)
     .catch((error) => {
       if (

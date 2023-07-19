@@ -5,7 +5,7 @@ import {
   SlashCommandBuilder,
 } from 'discord.js';
 import { BasicDiscordCommand } from '../../command';
-import { DEFAULT_AUTH_URL, getUser } from 'knockoutcity-auth-client';
+import { DEFAULT_AUTH_URL, getUserById } from 'knockoutcity-auth-client';
 import { createUserEmbed } from '../../embeds/user_embed';
 import { reply } from '../../message_provider';
 
@@ -27,7 +27,7 @@ export const UserBasicCommand = {
 
     const user = interaction.options.getUser('name', false) ?? interaction.user;
 
-    const userData = await getUser(DEFAULT_AUTH_URL, user.id).catch(() => null);
+    const userData = await getUserById(DEFAULT_AUTH_URL, user.id).catch(() => null);
 
     if (!userData) {
       await reply(interaction, {
