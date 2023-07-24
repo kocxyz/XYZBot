@@ -41,5 +41,8 @@ async function createBrawler(user: User): Promise<Result<Brawler>> {
     return userDataResult;
   }
 
-  return BrawlerDao.createBrawler(user.id, userDataResult.data.data.username);
+  return BrawlerDao.createBrawler(
+    user.id,
+    userDataResult.data.data.user.username,
+  );
 }

@@ -27,7 +27,9 @@ export const UserBasicCommand = {
 
     const user = interaction.options.getUser('name', false) ?? interaction.user;
 
-    const userData = await getUserById(DEFAULT_AUTH_URL, user.id).catch(() => null);
+    const userData = await getUserById(DEFAULT_AUTH_URL, user.id).catch(
+      () => null,
+    );
 
     if (!userData) {
       await reply(interaction, {
@@ -44,7 +46,7 @@ export const UserBasicCommand = {
           new ButtonBuilder()
             .setLabel('See on Brawler Index')
             .setURL(
-              `https://brawler.kocity.xyz/brawler/${userData.data.username}`,
+              `https://brawler.kocity.xyz/brawler/${userData.data.user.username}`,
             )
             .setStyle(ButtonStyle.Link),
         ]),

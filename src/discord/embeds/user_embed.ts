@@ -78,7 +78,7 @@ export async function createUserEmbed(
     .addFields([
       {
         name: 'Username',
-        value: userData.username,
+        value: userData.user.username,
       },
       {
         name: 'Team',
@@ -86,11 +86,11 @@ export async function createUserEmbed(
       },
       {
         name: 'Registered At',
-        value: `<t:${moment(Date.parse(userData.registeredat)).unix()}>`,
+        value: `<t:${moment(Date.parse(userData.user.registeredat)).unix()}>`,
       },
       {
         name: 'Last Login',
-        value: `<t:${moment(Date.parse(userData.lastlogin)).unix()}>`,
+        value: `<t:${moment(Date.parse(userData.user.lastlogin)).unix()}>`,
       },
       ...(additionalInfo.fields ?? []),
     ]);
