@@ -19,7 +19,7 @@ export const InviteTeamBasicCommand = {
 
   execute: async (interaction) => {
     await interaction.deferReply({ ephemeral: true });
-    
+
     const user = interaction.options.getUser('user', true);
 
     const ownerResult = await assertIsTeamOwner(interaction.user);
@@ -30,11 +30,19 @@ export const InviteTeamBasicCommand = {
     }
 
     const [team] = ownerResult.data;
-    const message = await user.send(
-      await TeamInviteMessageProvider.createMessage({ team }),
-    );
-    await TeamInviteMessageProvider.collector(message, { team });
+    const message = await user
+      .send(await TeamInviteMessageProvider.createMessage({ team }))
+      .catch(() => null);
 
+    if (!message) {
+      await reply(interaction, {
+        content: `Invite could not be sent to ${user.username}.\nMaybe they have turned of DM's from Server Members?`,
+        ephemeral: true,
+      });
+      return;
+    }
+
+    await TeamInviteMessageProvider.collector(message, { team });
     await reply(interaction, {
       content: `Invite send to ${user.username}`,
       ephemeral: true,
