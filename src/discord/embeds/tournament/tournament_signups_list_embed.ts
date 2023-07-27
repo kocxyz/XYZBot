@@ -1,21 +1,39 @@
 import { Tournament, Brawler, Team, Participant } from '@prisma/client';
 import { APIEmbedField, EmbedBuilder } from 'discord.js';
+import lodash from 'lodash';
+import { environment } from '../../../environment';
 
-export function createTournamentSignupListEmbed(
-  tournament: Tournament & {
-    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
-  },
-) {
-  return new EmbedBuilder()
-    .setTitle(`Participants: ${tournament.title}`)
-    .setDescription(tournament.description)
-    .addFields(
-      tournament.teamSize === 1
-        ? tournament.participants.map((p) =>
-            createSoloEntryField(p.brawlers[0]),
-          )
-        : createTeamEntryFields(tournament),
-    );
+export function createTournamentSignupListEmbed({
+  title,
+  teamSize,
+  participants,
+}: Tournament & {
+  participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
+}): EmbedBuilder[] {
+  const participantSlices =
+    participants.length <= environment.DISCORD_MAX_PARTICIPANTS_PER_EMBED
+      ? [participants]
+      : lodash.chunk(
+          participants,
+          environment.DISCORD_MAX_PARTICIPANTS_PER_EMBED,
+        );
+
+  return participantSlices.map((slice, index) => {
+    return new EmbedBuilder()
+      .setTitle(`Participants: ${title}`)
+      .setDescription(
+        participantSlices.length > 1
+          ? `(${index + 1} / ${participantSlices.length})`
+          : null,
+      )
+      .addFields(
+        teamSize === 1
+          ? slice.map(({ brawlers: [brawler] }) =>
+              createSoloEntryField(brawler),
+            )
+          : createTeamEntryFields(slice),
+      );
+  });
 }
 
 function createSoloEntryField(brawler: Brawler) {
@@ -26,11 +44,9 @@ function createSoloEntryField(brawler: Brawler) {
 }
 
 function createTeamEntryFields(
-  tournament: Tournament & {
-    participants: (Participant & { team: Team | null; brawlers: Brawler[] })[];
-  },
+  participants: (Participant & { team: Team | null; brawlers: Brawler[] })[],
 ): APIEmbedField[] {
-  return tournament.participants.flatMap((participant): APIEmbedField[] => {
+  return participants.flatMap((participant): APIEmbedField[] => {
     return [
       { name: '\n', value: '\n' },
       { name: 'Team', value: participant.team?.name ?? '-', inline: true },

@@ -253,9 +253,10 @@ async function collector(
         }
 
         await reply(interaction, {
-          embeds: [createTournamentSignupListEmbed(tournamentResult.data)],
+          embeds: createTournamentSignupListEmbed(tournamentResult.data),
           ephemeral: true,
         });
+
         break;
     }
 
