@@ -119,7 +119,7 @@ async function collector(
         }
         break;
       case customIds.startButton:
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply();
 
         // Start Tournament
         const startTournamentResult = await startTournament(tournament.id);

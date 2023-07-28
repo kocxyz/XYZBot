@@ -249,7 +249,7 @@ async function collector(
         break;
 
       case customIds.nextMatchButton:
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply();
 
         const nextMatchResult = await getNextMatch(match.stageId);
         if (nextMatchResult.type === 'error') {
