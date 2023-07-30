@@ -6,7 +6,7 @@ export function logMessage(message: Message): void {
     const channel = message.channel;
     
     if (message.guild?.id !== environment.DISCORD_GUILD_ID) return;
-    if (message.content) return;
+    if (!message.content) return;
     if (channel.type !== ChannelType.GuildText) return;
         
     const time = new Date(message.createdTimestamp).toISOString().slice(11, 16);
