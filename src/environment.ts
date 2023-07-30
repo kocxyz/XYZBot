@@ -22,6 +22,7 @@ export const environment = load({
 
   DISCORD_CONTENT_SQUAD_ROLE_ID: String,
   DISCORD_DEVELOPER_ROLE_ID: String,
+  DISCORD_LOG_BASEPATH: String,
 
   DISCORD_MAX_PARTICIPANTS_PER_EMBED: {
     type: Number,
