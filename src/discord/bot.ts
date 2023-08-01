@@ -21,7 +21,7 @@ import { PermanentCollector } from './permanent_collector';
 import { createLogger } from '../logging';
 import { getMatchesForEmbedsWithDiscordId } from '../services/match';
 import { TournamentMatchOrganizerMessageProvider } from './message_provider/tournament/organize/tournament_match_organizer_message_provider';
-import { logMessage } from './event_handler/handle_messages';
+import { logEditMessage, logMessage } from './event_handler/handle_messages';
 
 const logger = createLogger('Discord Bot');
 
@@ -130,9 +130,12 @@ export class DiscordBot {
 
     this.client.on(
       Events.MessageCreate, 
-      (message) => {
-        logMessage(message);
-      }
+      (message) => logMessage(message)
+    );
+
+    this.client.on(
+      Events.MessageUpdate,
+      (oldMessage, newMessage) => logEditMessage(oldMessage, newMessage),
     );
   }
 
