@@ -23,6 +23,7 @@ import {
 import { assertIsTeamOwner } from '../../../../services/team';
 import { TournamentSignupTeamMessageProvider } from './tournament_signup_team_message_provider';
 import { PermanentCollector } from '../../../permanent_collector';
+import { environment } from '../../../../environment';
 
 const customIds = {
   signupButton: 'signup',
@@ -154,10 +155,16 @@ async function createMessage({
     )
     .setStyle(ButtonStyle.Danger);
 
+  const bracketButton = new ButtonBuilder()
+    .setLabel('Tournament Bracket')
+    .setURL(`${environment.BRAWLER_BASE_URL}/tournament/${tournament.id}`)
+    .setStyle(ButtonStyle.Link);
+
   return {
     embeds: [embed],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
+        bracketButton,
         signupInput,
         leaveInput,
       ),

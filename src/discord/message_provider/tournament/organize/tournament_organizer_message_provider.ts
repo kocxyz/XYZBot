@@ -68,16 +68,21 @@ async function createMessage({
     .setLabel('Archive Tournament')
     .setStyle(ButtonStyle.Secondary);
 
+  const bracketButton = new ButtonBuilder()
+    .setLabel('Tournament Bracket')
+    .setURL(`${environment.BRAWLER_BASE_URL}/tournament/${tournament.id}`)
+    .setStyle(ButtonStyle.Link);
+
   return {
     embeds: [await createTournamentOrganizerEmbed(tournament)],
     components: [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         tournament.status === TournamentStatus.FINISHED ||
           tournament.status === TournamentStatus.IN_PROGRESS
-          ? [listSignupsButton, archiveButton]
+          ? [listSignupsButton, archiveButton, bracketButton]
           : tournament.status === TournamentStatus.SIGNUP_OPEN
-          ? [listSignupsButton, closeSignupsButton, startButton]
-          : [listSignupsButton, openSignupsButton],
+          ? [listSignupsButton, closeSignupsButton, startButton, bracketButton]
+          : [listSignupsButton, openSignupsButton, bracketButton],
       ),
     ],
   };

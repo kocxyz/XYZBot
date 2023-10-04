@@ -1,6 +1,8 @@
 import { load } from 'ts-dotenv';
 
 export const environment = load({
+  BRAWLER_BASE_URL: String,
+
   // Discord Credentials
   DISCORD_BOT_CLIENT_ID: String,
   DISCORD_BOT_TOKEN: String,
