@@ -17,7 +17,7 @@
     "brackets-manager": "1.5.9",
     "brackets-prisma-db": "^1.0.1",
     "discord.js": "^14.11.0",
-    "knockoutcity-auth-client": "^1.0.0-alpha.4",
+    "knockoutcity-auth-client": "^1.0.1",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "patch-package": "^7.0.2",
