@@ -49,10 +49,10 @@ async function getAdditionalInfo(
     };
   }
 
-  if (member?.roles.cache.has(environment.DISCORD_DEVELOPER_ROLE_ID)) {
+  if (member?.roles.cache.has(environment.DISCORD_FOUNDER_ROLE_ID)) {
     return {
       color: 0xffd700,
-      description: 'This user is a Developer',
+      description: 'This user is a Founder',
     };
   }
 
