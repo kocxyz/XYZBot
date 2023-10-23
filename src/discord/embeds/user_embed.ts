@@ -24,6 +24,13 @@ async function getAdditionalInfo(
       return null;
     });
 
+  if (member?.roles.cache.has(environment.DISCORD_FOUNDER_ROLE_ID)) {
+    return {
+      color: 0xffd700,
+      description: 'This user is a Founder',
+    };
+  }
+
   if (userData.ownedServers && userData.ownedServers.length > 0) {
     return {
       color: 0x0000ff,
@@ -42,13 +49,6 @@ async function getAdditionalInfo(
     };
   }
 
-  if (userData.user.premium !== 0) {
-    return {
-      color: 0x1a9e5f,
-      description: `This user is a Patreon Tier ${userData.user.premium} Subscriber`,
-    };
-  }
-
   if (member?.roles.cache.has(environment.DISCORD_CONTENT_SQUAD_ROLE_ID)) {
     return {
       color: 0xe8a0bf,
@@ -56,10 +56,10 @@ async function getAdditionalInfo(
     };
   }
 
-  if (member?.roles.cache.has(environment.DISCORD_FOUNDER_ROLE_ID)) {
+  if (userData.user.premium !== 0) {
     return {
-      color: 0xffd700,
-      description: 'This user is a Founder',
+      color: 0x1a9e5f,
+      description: `This user is a Patreon Tier ${userData.user.premium} Subscriber`,
     };
   }
 
