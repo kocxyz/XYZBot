@@ -31,6 +31,13 @@ async function getAdditionalInfo(
     };
   }
 
+  if (member?.roles.cache.has(environment.DISCORD_COMMUNITY_MANAGER_ROLE_ID)) {
+    return {
+      color: 0x106a20,
+      description: 'This user is a Community Manager',
+    };
+  }
+
   if (userData.ownedServers && userData.ownedServers.length > 0) {
     return {
       color: 0x0000ff,
