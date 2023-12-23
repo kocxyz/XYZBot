@@ -10,6 +10,7 @@ datasource db {
 model CSMember {
   discordId  String  @id @unique
   twitchName String  @unique
+  priority   Int     @default(1)
   color      String
   // If the member is currently live
   live       Boolean @default(false)

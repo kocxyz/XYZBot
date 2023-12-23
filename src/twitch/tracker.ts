@@ -75,7 +75,7 @@ export class TwitchClient extends EventEmitter {
 
         // Stream data could not be retrieved
         // or streamer is not live.
-        if (!streamData || streamData.type !== 'live') {
+        if (!streamData || streamData.type !== 'live' || streamData.gameId !== "1924769596") {
           if (user.live) {
             // User was previously live and switch to offline.
             // Let listeners know.
@@ -89,7 +89,7 @@ export class TwitchClient extends EventEmitter {
                   live: false,
                 },
               })
-              .catch((error) => {
+              .catch((error: any) => {
                 logger.error(
                   `Error updating CS Member: ${JSON.stringify(error)}`,
                 );
@@ -103,7 +103,7 @@ export class TwitchClient extends EventEmitter {
         }
 
         // If user wasn't live bevor
-        if (!user.live) {
+        if (!user.live && streamData.gameId === "1924769596") {
           // Let listeners know that they are live now.
           this.emit('live', user);
 
@@ -115,7 +115,7 @@ export class TwitchClient extends EventEmitter {
                 live: true,
               },
             })
-            .catch((error) => {
+            .catch((error: any) => {
               logger.error(
                 `Error updating CS Member: ${JSON.stringify(error)}`,
               );
