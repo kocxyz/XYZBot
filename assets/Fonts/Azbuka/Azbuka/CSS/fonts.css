@@ -1,0 +1,48 @@
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/AzbukaPro-Bold-webfont.eot?#iefix");
+src: url("../fonts/AzbukaPro-Bold.eot?#iefix") format("eot"),
+       url("../fonts/AzbukaPro-Bold.woff2") format("woff2"),
+       url("../fonts/AzbukaPro-Bold.woff") format("woff"),
+       url("../fonts/AzbukaPro-Bold.ttf") format("truetype"),
+       url("../fonts/AzbukaPro-Bold.svg") format("svg");
+font-weight: 600;
+font-style: Bold;
+
+}
+
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/AzbukaPro-BoldItalic.eot?#iefix");
+src: url("../fonts/AzbukaPro-BoldItalic.eot?#iefix") format("eot"),
+       url("../fonts/AzbukaPro-BoldItalic.woff2") format("woff2"),
+       url("../fonts/AzbukaPro-BoldItalic.woff") format("woff"),
+       url("../fonts/AzbukaPro-BoldItalic.ttf") format("truetype"),
+       url("../fonts/AzbukaPro-BoldItalic.svg") format("svg");
+font-weight: 600;
+font-style: BoldItalic;
+}
+
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/AzbukaPro.eot?#iefix");
+src: url("../fonts/AzbukaPro.eot?#iefix") format("eot"),
+       url("../fonts/AzbukaPro.woff2") format("woff2"),
+       url("../fonts/AzbukaPro.woff") format("woff"),
+       url("../fonts/AzbukaPro.ttf") format("truetype"),
+       url("../fonts/AzbukaPro.svg") format("svg");
+font-weight: 400;
+font-style: Regular;
+}
+
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/AzbukaPro-Italic.eot?#iefix");
+src: url("../fonts/AzbukaPro-Italic.eot?#iefix") format("eot"),
+       url("../fonts/AzbukaPro-Italic.woff2") format("woff2"),
+       url("../fonts/AzbukaPro-Italic.woff") format("woff"),
+       url("../fonts/AzbukaPro-Italic.ttf") format("truetype"),
+       url("../fonts/AzbukaPro-Italic.svg") format("svg");
+font-weight: 400;
+font-style: Italic;
+}

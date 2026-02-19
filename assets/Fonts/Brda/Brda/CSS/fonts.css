@@ -1,0 +1,24 @@
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/BrdaStd-ExtraBoldItalic-webfont.eot?#iefix");
+src: url("../fonts/BrdaStd-ExtraBoldItalic.eot?#iefix") format("eot"),
+       url("../fonts/BrdaStd-ExtraBoldItalic.woff2") format("woff2"),
+       url("../fonts/BrdaStd-ExtraBoldItalic.woff") format("woff"),
+       url("../fonts/BrdaStd-ExtraBoldItalic.ttf") format("truetype"),
+       url("../fonts/BrdaStd-ExtraBoldItalic.svg") format("svg");
+font-weight: 800;
+font-style: ExtraBoldItalic;
+
+}
+
+@font-face {
+       font-family: "Brda";
+src: url("../fonts/BrdaCom-ExtraBold.eot?#iefix");
+src: url("../fonts/BrdaCom-ExtraBold.eot?#iefix") format("eot"),
+       url("../fonts/BrdaCom-ExtraBold.woff2") format("woff2"),
+       url("../fonts/BrdaCom-ExtraBold.woff") format("woff"),
+       url("../fonts/BrdaCom-ExtraBold.ttf") format("truetype"),
+       url("../fonts/BrdaCom-ExtraBold.svg") format("svg");
+font-weight: 800;
+font-style: ExtraBold;
+}
