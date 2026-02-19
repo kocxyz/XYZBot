@@ -3,6 +3,7 @@ import Discord from "discord.js";
 import { createCanvas, GlobalFonts, loadImage } from '@napi-rs/canvas';
 import dotenv from "dotenv";
 import path from "path";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -211,7 +212,8 @@ async function updateStatus() {
     // --- Footer ---
     ctx.font = '12px Brda';
     ctx.fillStyle = 'rgba(184, 184, 204, 0.5)';
-    const footerText = 'kocity.xyz  •  Updated live every 60s';
+    const footerHash = crypto.randomBytes(4).toString('hex');
+    const footerText = `kocity.xyz  •  Updated live every 60s • ${footerHash}`;
     const footerMetrics = ctx.measureText(footerText);
     ctx.fillText(footerText, (WIDTH - footerMetrics.width) / 2, HEIGHT - 14);
 
